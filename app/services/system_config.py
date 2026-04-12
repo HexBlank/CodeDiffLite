@@ -49,4 +49,5 @@ def get_auth_settings() -> dict:
         "login_with_code_enabled": get_config("auth_login_with_code_enabled", "false") == "true",
         "register_enabled": get_config("auth_register_enabled", "true") == "true",
         "register_email_verify": get_config("auth_register_email_verify", "false") == "true",
+        'smtp_configured': is_email_configured(),
     }
