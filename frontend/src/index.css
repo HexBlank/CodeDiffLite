@@ -1,0 +1,211 @@
+@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Fira+Code:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Clean, high-precision slate OKLCH - Light Mode */
+    --background: 0.99 0.002 250;
+    --foreground: 0.20 0.02 250;
+    --card: 0.99 0.002 250;
+    --card-foreground: 0.20 0.02 250;
+    --popover: 0.99 0.002 250;
+    --popover-foreground: 0.20 0.02 250;
+    --primary: 0.35 0.04 250;
+    --primary-foreground: 0.98 0.005 250;
+    --secondary: 0.96 0.005 250;
+    --secondary-foreground: 0.25 0.02 250;
+    --muted: 0.96 0.005 250;
+    --muted-foreground: 0.55 0.01 250;
+    --accent: 0.96 0.005 250;
+    --accent-foreground: 0.25 0.02 250;
+    --destructive: 0.60 0.15 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.90 0.01 250;
+    --input: 0.90 0.01 250;
+    --ring: 0.35 0.04 250;
+    --radius: 0.75rem;
+    
+    --success: 0.65 0.15 150;
+    --success-foreground: 0.98 0 0;
+    
+    /* Technical Charts */
+    --chart-1: 0.55 0.15 250;
+    --chart-2: 0.65 0.12 180;
+    --chart-3: 0.70 0.10 45;
+    --chart-4: 0.60 0.12 320;
+    --chart-5: 0.55 0.15 25;
+    
+    /* Clean Sidebar */
+    --sidebar-background: 0.98 0.003 250;
+    --sidebar-foreground: 0.25 0.02 250;
+    --sidebar-primary: 0.35 0.04 250;
+    --sidebar-primary-foreground: 0.98 0.005 250;
+    --sidebar-accent: 0.94 0.008 250;
+    --sidebar-accent-foreground: 0.20 0.02 250;
+    --sidebar-border: 0.90 0.01 250;
+    --sidebar-ring: 0.35 0.04 250;
+  }
+
+  .dark {
+    /* Clean, high-precision slate OKLCH - Dark Mode */
+    --background: 0.20 0.015 250;
+    --foreground: 0.96 0.005 250;
+    --card: 0.20 0.015 250;
+    --card-foreground: 0.96 0.005 250;
+    --popover: 0.20 0.015 250;
+    --popover-foreground: 0.96 0.005 250;
+    --primary: 0.96 0.005 250;
+    --primary-foreground: 0.25 0.02 250;
+    --secondary: 0.25 0.015 250;
+    --secondary-foreground: 0.96 0.005 250;
+    --muted: 0.25 0.015 250;
+    --muted-foreground: 0.70 0.01 250;
+    --accent: 0.25 0.015 250;
+    --accent-foreground: 0.96 0.005 250;
+    --destructive: 0.50 0.15 25;
+    --destructive-foreground: 0.98 0 0;
+    --border: 0.28 0.015 250;
+    --input: 0.28 0.015 250;
+    --ring: 0.85 0.01 250;
+    
+    --success: 0.55 0.15 150;
+    --success-foreground: 0.10 0.02 150;
+    
+    /* Technical Charts */
+    --chart-1: 0.65 0.15 250;
+    --chart-2: 0.75 0.12 180;
+    --chart-3: 0.80 0.10 45;
+    --chart-4: 0.70 0.12 320;
+    --chart-5: 0.65 0.15 25;
+
+    /* Clean Sidebar */
+    --sidebar-background: 0.18 0.018 250;
+    --sidebar-foreground: 0.90 0.005 250;
+    --sidebar-primary: 0.96 0.005 250;
+    --sidebar-primary-foreground: 0.25 0.02 250;
+    --sidebar-accent: 0.24 0.015 250;
+    --sidebar-accent-foreground: 0.96 0.005 250;
+    --sidebar-border: 0.25 0.015 250;
+    --sidebar-ring: 0.28 0.015 250;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Applying heading font to h1-h6 */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+/* 编辑器容器 - 填满可用空间，使用平滑圆角 */
+.editor-wrapper {
+  @apply relative w-full h-full overflow-hidden rounded-xl border border-border shadow-sm;
+}
+
+/* Monaco 编辑器样式增强 - 柔和过渡 */
+.monaco-editor,
+.monaco-editor .overflow-guard {
+  border-radius: 0.75rem !important;
+}
+
+.monaco-editor .margin {
+  background: transparent !important;
+}
+
+/* 现代滚动条 - 机械风格 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(var(--muted-foreground) / 0.35);
+  border-radius: 999px;
+  transition: all 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--muted-foreground) / 0.7);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* 简洁背景 - 无特效 */
+.gradient-mesh {
+  background-color: oklch(var(--background));
+}
+
+/* 柔和阴影，优雅地突显内容层级 */
+.glass {
+  @apply bg-background/95 backdrop-blur-md border border-border shadow-sm;
+}
+
+.glass-panel {
+  @apply bg-card/95 backdrop-blur-md border border-border/80 shadow-md;
+}
+
+/* 优雅的悬停发光/阴影效果 */
+.glow {
+  box-shadow: 0 4px 20px -2px oklch(var(--foreground) / 0.05), 0 0 0 1px oklch(var(--border) / 0.5);
+}
+
+/* 卡片平滑悬停效果 (移除干扰视线的杂色蒙层，仅保留阴影和极度轻微上浮) */
+.card-interactive {
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-interactive:hover {
+  @apply shadow-md transform -translate-y-px border-border/80;
+}
+
+/* 锐利的入场动画 */
+@keyframes slide-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-up {
+  animation: slide-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-slide-in-bottom {
+  animation: slide-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 选中态 */
+.selected-ring {
+  @apply ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
