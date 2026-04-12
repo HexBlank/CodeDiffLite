@@ -4,6 +4,22 @@
 非常适合学生（如大一新生）在学习编程遇到 Bug 时，将代码一键分享给老师或同学；对方修改并提交后，系统会生成版本树，并通过直观的双视窗对比（Diff），让学生一目了然地看到代码错在哪里、被改了什么地方。
 同时，它也支持用户权限隔离与私密分享配置，非常适合作为实验室内部的协同小站或个人 Snippet 库。
 
+🔗 **在线预览**：[https://codediff.sixw.de](https://codediff.sixw.de)
+
+## 📸 项目截图
+
+| 首页 | 后台管理 |
+|:---:|:---:|
+| ![首页](./docs/screenshots/homepage.png) | ![后台管理](./docs/screenshots/admin.png) |
+
+| 分享页 | Diff 对比 |
+|:---:|:---:|
+| ![分享页](./docs/screenshots/share.png) | ![Diff对比](./docs/screenshots/diff-view.png) |
+
+| 代码分享 |
+|:---:|
+| ![代码分享](./docs/screenshots/code-share.png) |
+
 ## ✨ 特性 (Features)
 
 *   **💻 沉浸式代码体验**：集成 Monaco Editor（VS Code 核心），提供语法高亮和优雅的代码编辑器交互。
