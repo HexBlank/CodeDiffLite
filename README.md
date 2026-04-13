@@ -1,10 +1,10 @@
-# CodeDiff Lite 🚀
+# CodeDiff Lite
 
 一款专为**编程教学与求助场景**打造的轻量级代码片段分享、版本分叉与差异对比平台。
 非常适合学生（如大一新生）在学习编程遇到 Bug 时，将代码一键分享给老师或同学；对方修改并提交后，系统会生成版本树，并通过直观的双视窗对比（Diff），让学生一目了然地看到代码错在哪里、被改了什么地方。
 同时，它也支持用户权限隔离与私密分享配置，非常适合作为实验室内部的协同小站或个人 Snippet 库。
 
-🔗 **在线预览**：[https://codediff.sixw.de](https://codediff.sixw.de)
+🚀 **在线预览**：[https://codediff.sixw.de](https://codediff.sixw.de)
 
 ## 📸 项目截图
 
