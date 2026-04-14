@@ -67,10 +67,6 @@ export function CodeEditor({
             bracketPairs: true,
             indentation: true,
           },
-          scrollbar: {
-            verticalScrollbarSize: 8,
-            horizontalScrollbarSize: 8,
-          },
           fixedOverflowWidgets: false,
           overviewRulerBorder: false,
           hideCursorInOverviewRuler: true,
