@@ -61,6 +61,18 @@ export function DiffViewer({
           renderSideBySide: renderSideBySide !== undefined ? renderSideBySide : !isMobile,
           automaticLayout: true,
           padding: { top: 8 },
+          accessibilitySupport: 'off',
+          fixedOverflowWidgets: false,
+          contextmenu: false,
+          unicodeHighlight: {
+            ambiguousCharacters: false,
+            invisibleCharacters: false,
+          },
+          domReadOnly: !onModifiedChange,
+          scrollbar: {
+            verticalScrollbarSize: 8,
+            horizontalScrollbarSize: 8,
+          },
         }}
         loading={
           <div className="flex items-center justify-center h-full text-muted-foreground">

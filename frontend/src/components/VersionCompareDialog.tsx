@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { X, GitCompare, Check, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -46,23 +46,7 @@ export function VersionCompareDialog({
     ...descendants,
   ]
 
-  useEffect(() => {
-    if (!isOpen) {
-      setBaseId('')
-      setCompareId('')
-      setCompareResult(null)
-      setError(null)
-      setActiveTab('select')
-    } else {
-      setBaseId(initialBaseId || '')
-      setCompareId(initialCompareId || '')
-      if (initialBaseId && initialCompareId) {
-        handleCompare(initialBaseId, initialCompareId)
-      }
-    }
-  }, [isOpen, initialBaseId, initialCompareId])
-
-  const handleCompare = async (bId: string = baseId, cId: string = compareId) => {
+  const handleCompare = useCallback(async (bId: string = baseId, cId: string = compareId) => {
     if (!bId || !cId) {
       toast.error('请选择两个版本进行对比')
       return
@@ -87,7 +71,23 @@ export function VersionCompareDialog({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [baseId, compareId])
+
+  useEffect(() => {
+    if (!isOpen) {
+      setBaseId('')
+      setCompareId('')
+      setCompareResult(null)
+      setError(null)
+      setActiveTab('select')
+    } else {
+      setBaseId(initialBaseId || '')
+      setCompareId(initialCompareId || '')
+      if (initialBaseId && initialCompareId) {
+        handleCompare(initialBaseId, initialCompareId)
+      }
+    }
+  }, [isOpen, initialBaseId, initialCompareId, handleCompare])
 
   const handleSwap = () => {
     setBaseId(compareId)

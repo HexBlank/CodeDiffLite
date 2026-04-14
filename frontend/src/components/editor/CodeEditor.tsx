@@ -71,10 +71,25 @@ export function CodeEditor({
             verticalScrollbarSize: 8,
             horizontalScrollbarSize: 8,
           },
-          fixedOverflowWidgets: true,
+          fixedOverflowWidgets: false,
           overviewRulerBorder: false,
           hideCursorInOverviewRuler: true,
           accessibilitySupport: 'off',
+          contextmenu: false,
+          unicodeHighlight: {
+            ambiguousCharacters: false,
+            invisibleCharacters: false,
+          },
+          quickSuggestions: false,
+          domReadOnly: readOnly,
+          // 彻底关闭编辑器用于无障碍和移动端的文本区域交互帮助器
+          scrollbar: {
+            verticalScrollbarSize: 8,
+            horizontalScrollbarSize: 8,
+            alwaysConsumeMouseWheel: false,
+          },
+          links: false,
+          lineNumbersMinChars: 3,
         }}
         loading={
           <div className="flex items-center justify-center h-full text-muted-foreground">

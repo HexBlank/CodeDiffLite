@@ -124,17 +124,38 @@
   background: transparent !important;
 }
 
-/* 隐藏 Monaco Editor 在移动端或辅助模式下出现的悬浮键盘/辅助图标 */
-.monaco-editor .accessibilityHelpWidget,
+/* 精准打击并彻底切断 Monaco Editor 移动端虚拟键盘图标 */
+/* 针对用户提供的: <textarea class="iPadShowKeyboard" widgetid="editor.contrib.ShowKeyboardWidget"> */
+textarea.iPadShowKeyboard,
+textarea[class*="iPadShowKeyboard"],
+textarea[widgetid="editor.contrib.ShowKeyboardWidget"],
 .monaco-editor .textArea-helper,
-.monaco-editor .screen-reader-button,
-.monaco-editor .ipad-show-keyboard,
-.monaco-editor [aria-label*="accessibility" i],
-.monaco-editor [title*="Accessibility" i],
-.monaco-editor .accessibility-mode-widget {
+.monaco-editor .iPadShowKeyboard,
+.monaco-editor .accessibilityHelpWidget,
+.monaco-editor [class*="iPadShowKeyboard"],
+.monaco-editor [widgetid*="ShowKeyboardWidget"] {
   display: none !important;
   visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
   pointer-events: none !important;
+  z-index: -1000 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  clip-path: inset(50%) !important;
+  clip: rect(0 0 0 0) !important;
+  overflow: hidden !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none !important;
+}
+
+/* 拦截任何可能注入的 ShowKeyboardWidget */
+[widgetid="editor.contrib.ShowKeyboardWidget"] {
+  display: none !important;
 }
 
 /* 现代滚动条 - 机械风格 */
