@@ -39,11 +39,27 @@
 ### 1. 本地开发运行 (Development)
 
 **启动后端：**
+
+我们推荐使用 [uv](https://astral.sh/uv/) 来管理环境与依赖，它比传统 pip 更快且更可靠。
+
+**方法 A：使用 uv (推荐)**
 ```bash
-# 1. 创建并激活虚拟环境 (推荐)
+# 1. 同步环境与依赖 (自动创建虚拟环境)
+uv sync
+
+# 2. 环境变量配置
+copy .env.example .env
+
+# 3. 启动服务 
+uv run python main.py
+```
+
+**方法 B：使用传统 pip**
+```bash
+# 1. 创建并激活虚拟环境
 python -m venv .venv
-# source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate     # Windows
+# source .venv/bin/activate  # Linux/Mac
 
 # 2. 安装依赖
 pip install -r requirements.txt
@@ -53,8 +69,8 @@ copy .env.example .env
 
 # 4. 启动服务 
 python main.py
-# 服务将默认运行在: http://localhost:8088
 ```
+> 服务将默认运行在: http://localhost:8088
 
 **启动前端：**
 ```bash
