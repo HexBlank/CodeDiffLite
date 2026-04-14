@@ -34,11 +34,15 @@ export function UserMenu() {
     toast.success('已退出登录')
   }
 
-  const openLogin = () => {
+  const openLogin = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     setShowLoginDialog(true)
   }
 
-  const openRegister = () => {
+  const openRegister = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     setShowRegisterDialog(true)
   }
 
@@ -62,13 +66,13 @@ export function UserMenu() {
 
     return (
       <>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           {showLogin && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={openLogin}
-              className="h-8 px-3 text-xs font-medium"
+              className="h-8 px-2 sm:px-3 text-xs font-medium"
             >
               登录
             </Button>
@@ -77,7 +81,7 @@ export function UserMenu() {
             <Button 
               size="sm" 
               onClick={openRegister}
-              className="h-8 px-3 text-xs font-medium"
+              className="h-8 px-2 sm:px-3 text-xs font-medium"
             >
               注册
             </Button>
@@ -113,16 +117,16 @@ export function UserMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2 px-2">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+          <Button variant="ghost" className="flex items-center gap-1 sm:gap-2 px-1 sm:px-2">
+            <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm">
                 {getAvatarText()}
               </AvatarFallback>
             </Avatar>
             <span className="hidden max-w-[100px] truncate text-sm font-medium sm:inline">
               {user?.nickname || user?.email?.split('@')[0]}
             </span>
-            <ChevronDown className="h-4 w-4 text-gray-400" />
+            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 hidden sm:block" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">

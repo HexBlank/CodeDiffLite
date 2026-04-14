@@ -330,7 +330,7 @@ export function SnippetPage() {
             <Button 
               variant="outline" 
               size="sm"
-              className="h-9 px-3 hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300"
+              className="h-9 w-9 sm:w-auto px-0 sm:px-3 hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300"
               onClick={() => setShowShareImage(true)}
             >
               <Image className="w-4 h-4 sm:mr-1.5" />
@@ -341,7 +341,7 @@ export function SnippetPage() {
             {isOwner && isLoggedIn && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9 hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300">
+                  <Button variant="outline" size="icon" className="h-9 w-9 hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300 shrink-0">
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -358,15 +358,15 @@ export function SnippetPage() {
             <Button
               onClick={handleShare}
               disabled={shareMutation.isPending}
-              className="h-9 px-4 hover:bg-primary shadow-sm hover:shadow-md hover:-translate-y-px transition-all duration-300"
+              className="h-9 w-9 sm:w-auto px-0 sm:px-4 hover:bg-primary shadow-sm hover:shadow-md hover:-translate-y-px transition-all duration-300"
             >
               {shareMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <>
+                <div className="flex items-center justify-center">
                   <Share2 className="w-4 h-4 sm:mr-2" />
                   <span className="hidden sm:inline">提交修改</span>
-                </>
+                </div>
               )}
             </Button>
           </div>

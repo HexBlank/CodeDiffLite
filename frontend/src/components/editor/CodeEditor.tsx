@@ -23,10 +23,6 @@ export function CodeEditor({
 
   const handleMount: OnMount = useCallback((editor) => {
     editorRef.current = editor
-    // 延迟聚焦以确保编辑器完全初始化
-    setTimeout(() => {
-      editor.focus()
-    }, 100)
   }, [])
 
   const handleChange: OnChange = useCallback(
@@ -75,6 +71,10 @@ export function CodeEditor({
             verticalScrollbarSize: 8,
             horizontalScrollbarSize: 8,
           },
+          fixedOverflowWidgets: true,
+          overviewRulerBorder: false,
+          hideCursorInOverviewRuler: true,
+          accessibilitySupport: 'off',
         }}
         loading={
           <div className="flex items-center justify-center h-full text-muted-foreground">

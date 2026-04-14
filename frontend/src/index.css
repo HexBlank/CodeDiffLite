@@ -124,6 +124,19 @@
   background: transparent !important;
 }
 
+/* 隐藏 Monaco Editor 在移动端或辅助模式下出现的悬浮键盘/辅助图标 */
+.monaco-editor .accessibilityHelpWidget,
+.monaco-editor .textArea-helper,
+.monaco-editor .screen-reader-button,
+.monaco-editor .ipad-show-keyboard,
+.monaco-editor [aria-label*="accessibility" i],
+.monaco-editor [title*="Accessibility" i],
+.monaco-editor .accessibility-mode-widget {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* 现代滚动条 - 机械风格 */
 ::-webkit-scrollbar {
   width: 8px;

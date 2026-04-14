@@ -327,12 +327,12 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
         </div>
 
         {/* 预览区域 */}
-        <div className="flex-1 overflow-auto bg-gray-50 p-6 dark:bg-gray-950">
-          <div className="mx-auto max-w-2xl">
+        <div className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-8 dark:bg-gray-950">
+          <div className="w-max mx-auto pb-4">
             {/* 分享卡片 */}
             <div
               ref={cardRef}
-              className="overflow-hidden rounded-xl shadow-2xl"
+              className="overflow-hidden rounded-xl shadow-2xl w-max min-w-[600px] max-w-[900px]"
               style={{ background: selectedTheme.bg }}
             >
               {/* 卡片头部 */}
@@ -360,14 +360,14 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
               {/* 代码区域 */}
               <div className={`px-6 ${showHeader ? 'pb-4' : 'py-4'}`}>
                 <div
-                  className="rounded-lg p-4 font-mono text-sm leading-relaxed overflow-x-auto"
+                  className="rounded-lg p-4 font-mono text-sm leading-relaxed"
                   style={{ 
                     backgroundColor: selectedTheme.codeBg,
                     color: selectedTheme.textColor,
                   }}
                 >
                   <pre 
-                    className="m-0"
+                    className="m-0 whitespace-pre-wrap break-words"
                     dangerouslySetInnerHTML={{ __html: highlightedCode }}
                   />
                   {hasMore && (

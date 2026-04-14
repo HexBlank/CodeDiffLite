@@ -192,17 +192,17 @@ export function HomePage() {
     <div className="h-screen flex flex-col overflow-hidden">
       {/* Header */}
       <header className="glass border-b border-border/50 sticky top-0 z-50 shrink-0 transition-all duration-300">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="group w-10 h-10 rounded-lg bg-primary flex items-center justify-center shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-              <Code2 className="w-5 h-5 text-primary-foreground group-hover:scale-110 transition-transform" />
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="group w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary flex items-center justify-center shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+              <Code2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground group-hover:scale-110 transition-transform" />
             </div>
             <div>
-              <h1 className="font-semibold text-lg tracking-tight">CodeDiff</h1>
+              <h1 className="hidden sm:block font-semibold text-lg tracking-tight">CodeDiff</h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* 登录注册 */}
             <UserMenu />
 
@@ -211,7 +211,7 @@ export function HomePage() {
               value={language}
               onValueChange={(v) => setLanguage(v as LanguageValue)}
             >
-              <SelectTrigger className="w-[140px] h-10 text-sm font-medium hover:bg-accent transition-colors">
+              <SelectTrigger className="w-[100px] sm:w-[140px] h-9 sm:h-10 text-xs sm:text-sm font-medium hover:bg-accent transition-colors">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -227,18 +227,18 @@ export function HomePage() {
             <Button
               onClick={handleShare}
               disabled={shareMutation.isPending}
-              className="h-10 px-5 shadow-sm font-medium hover:bg-primary hover:shadow-md hover:-translate-y-px transition-all duration-300"
+              className="h-9 w-9 sm:w-auto sm:h-10 px-0 sm:px-5 shadow-sm font-medium hover:bg-primary hover:shadow-md hover:-translate-y-px transition-all duration-300"
             >
               {shareMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  生成中...
-                </>
+                <div className="flex items-center justify-center">
+                  <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">生成中...</span>
+                </div>
               ) : (
-                <>
-                  <Share2 className="w-4 h-4 mr-2" />
-                  分享代码
-                </>
+                <div className="flex items-center justify-center">
+                  <Share2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">分享代码</span>
+                </div>
               )}
             </Button>
 
@@ -247,10 +247,12 @@ export function HomePage() {
               <Button
                 variant="outline"
                 onClick={handleRestrictedShare}
-                className="h-10 px-5 shadow-sm font-medium backdrop-blur-sm hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300"
+                className="h-9 w-9 sm:w-auto sm:h-10 px-0 sm:px-5 shadow-sm font-medium backdrop-blur-sm hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300"
               >
-                <Lock className="w-4 h-4 mr-2" />
-                私密分享
+                <div className="flex items-center justify-center">
+                  <Lock className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">私密分享</span>
+                </div>
               </Button>
             )}
           </div>
