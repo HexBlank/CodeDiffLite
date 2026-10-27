@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { api, Snippet, SnippetListItem } from '@/lib/api'
+import { api, getLanguageBadgeClass, Snippet, SnippetListItem } from '@/lib/api'
 import { formatDistanceToNow } from '@/lib/date'
 import { LazyDiffViewer } from '@/components/editor/LazyEditor'
 import { toast } from 'sonner'
@@ -108,25 +108,12 @@ export function VersionCompareDialog({
     }
   }
 
-  const getLanguageColor = (lang: string) => {
-    const colors: Record<string, string> = {
-      python: 'bg-blue-100 text-blue-700',
-      javascript: 'bg-yellow-100 text-yellow-700',
-      typescript: 'bg-blue-100 text-blue-700',
-      java: 'bg-orange-100 text-orange-700',
-      cpp: 'bg-purple-100 text-purple-700',
-      go: 'bg-cyan-100 text-cyan-700',
-      rust: 'bg-orange-100 text-orange-700',
-    }
-    return colors[lang] || 'bg-gray-100 text-gray-700'
-  }
-
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm md:p-4">
       {/* 移动端全屏；对比结果需要固定高度，编辑器才能在内部滚动 */}
-      <div className={`relative flex h-dvh w-full max-w-6xl flex-col bg-white shadow-2xl dark:bg-gray-900 overflow-hidden md:rounded-2xl ${activeTab === 'result' ? 'md:h-[90dvh]' : 'md:h-auto md:max-h-[90dvh]'}`}>
+      <div className={`relative flex h-dvh w-full max-w-6xl flex-col bg-card shadow-2xl overflow-hidden md:rounded-2xl ${activeTab === 'result' ? 'md:h-[90dvh]' : 'md:h-auto md:max-h-[90dvh]'}`}>
         {/* 头部 */}
         <div className="flex items-center justify-between border-b px-4 py-2 md:px-6 md:py-4">
           <div className="flex items-center gap-3">
@@ -136,7 +123,7 @@ export function VersionCompareDialog({
           <button
             onClick={onClose}
             aria-label="关闭"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
@@ -155,7 +142,7 @@ export function VersionCompareDialog({
             <div className="flex flex-1 min-h-0 flex-col md:flex-row">
               {/* 左侧：选择基础版本 */}
               <div className="flex-1 min-h-0 border-b p-4 overflow-y-auto md:border-b-0 md:border-r">
-                <h3 className="mb-3 text-sm font-medium text-gray-500">基础版本</h3>
+                <h3 className="mb-3 text-sm font-medium text-muted-foreground">基础版本</h3>
                 <div className="space-y-2">
                   {allVersions.map((version) => (
                     <button
@@ -165,12 +152,12 @@ export function VersionCompareDialog({
                       className={`w-full rounded-lg border p-3 text-left transition-all ${
                         baseId === version.id
                           ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                          : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
+                          : 'border-border hover:border-foreground/20'
                       } ${version.id === compareId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Badge className={getLanguageColor(version.language)}>
+                          <Badge className={getLanguageBadgeClass(version.language)}>
                             {version.language}
                           </Badge>
                           {version.id === root.id && (
@@ -184,7 +171,7 @@ export function VersionCompareDialog({
                       <p className="text-sm font-medium line-clamp-1 mb-1">
                         {version.message || '无标题'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(version.created_at)}
                       </p>
                     </button>
@@ -207,7 +194,7 @@ export function VersionCompareDialog({
 
               {/* 右侧：选择对比版本 */}
               <div className="flex-1 min-h-0 p-4 overflow-y-auto">
-                <h3 className="mb-3 text-sm font-medium text-gray-500">对比版本</h3>
+                <h3 className="mb-3 text-sm font-medium text-muted-foreground">对比版本</h3>
                 <div className="space-y-2">
                   {allVersions.map((version) => (
                     <button
@@ -217,12 +204,12 @@ export function VersionCompareDialog({
                       className={`w-full rounded-lg border p-3 text-left transition-all ${
                         compareId === version.id
                           ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                          : 'border-gray-200 hover:border-gray-300 dark:border-gray-700'
+                          : 'border-border hover:border-foreground/20'
                       } ${version.id === baseId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Badge className={getLanguageColor(version.language)}>
+                          <Badge className={getLanguageBadgeClass(version.language)}>
                             {version.language}
                           </Badge>
                           {version.id === root.id && (
@@ -236,7 +223,7 @@ export function VersionCompareDialog({
                       <p className="text-sm font-medium line-clamp-1 mb-1">
                         {version.message || '无标题'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(version.created_at)}
                       </p>
                     </button>
@@ -254,7 +241,7 @@ export function VersionCompareDialog({
                 </Alert>
               )}
               <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0 truncate text-sm text-gray-500">
+                <div className="min-w-0 truncate text-sm text-muted-foreground">
                   {baseId && compareId ? (
                     <span>
                       已选择：<span className="font-medium">{allVersions.find(v => v.id === baseId)?.message || '无标题'}</span>
@@ -286,14 +273,14 @@ export function VersionCompareDialog({
             {compareResult && (
               <>
                 {/* 信息栏 */}
-                <div className="border-b px-4 py-2 md:px-6 md:py-3 flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800/50">
+                <div className="border-b px-4 py-2 md:px-6 md:py-3 flex items-center justify-between gap-3 bg-muted/50">
                   <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                    <span className="text-gray-500">
-                      基础：<span className="font-medium text-gray-900 dark:text-gray-100">{compareResult.base.message || '无标题'}</span>
+                    <span className="text-muted-foreground">
+                      基础：<span className="font-medium text-foreground">{compareResult.base.message || '无标题'}</span>
                     </span>
-                    <GitCompare className="h-3 w-3 text-gray-400" />
-                    <span className="text-gray-500">
-                      对比：<span className="font-medium text-gray-900 dark:text-gray-100">{compareResult.compare.message || '无标题'}</span>
+                    <GitCompare className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      对比：<span className="font-medium text-foreground">{compareResult.compare.message || '无标题'}</span>
                     </span>
                   </div>
                   <Button variant="outline" size="sm" className="shrink-0" onClick={handleSwap}>

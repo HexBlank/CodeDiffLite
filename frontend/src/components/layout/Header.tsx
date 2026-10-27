@@ -1,6 +1,7 @@
 import { Code2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { UserMenu } from "@/components/UserMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Header() {
   return (
@@ -14,7 +15,8 @@ export function Header() {
           CodeDiff
         </span>
       </Link>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
         <UserMenu />
       </div>
     </header>

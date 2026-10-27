@@ -255,14 +255,14 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm md:p-4">
-      <div className="relative flex h-dvh md:h-auto md:max-h-[90dvh] w-full max-w-4xl flex-col md:rounded-2xl bg-white shadow-2xl dark:bg-gray-900 overflow-hidden">
+      <div className="relative flex h-dvh md:h-auto md:max-h-[90dvh] w-full max-w-4xl flex-col md:rounded-2xl bg-card shadow-2xl overflow-hidden">
         {/* 头部 */}
         <div className="flex items-center justify-between border-b px-4 py-2 md:px-6 md:py-4 shrink-0">
           <h2 className="text-lg font-semibold">生成分享图</h2>
           <button
             onClick={onClose}
             aria-label="关闭"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
@@ -271,7 +271,7 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
         {/* 主题选择和选项 */}
         <div className="border-b px-4 py-2 md:px-6 md:py-3 shrink-0">
           <div className="flex items-center gap-2 overflow-x-auto py-2 scrollbar-thin">
-            <Palette className="h-4 w-4 shrink-0 text-gray-400" />
+            <Palette className="h-4 w-4 shrink-0 text-muted-foreground" />
             {THEMES.map((theme) => (
               <button
                 key={theme.id}
@@ -279,11 +279,11 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all ${
                   selectedTheme.id === theme.id
                     ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-300'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
                 <span
-                  className="h-3 w-3 rounded-full border border-gray-300"
+                  className="h-3 w-3 rounded-full border border-border"
                   style={{ background: theme.codeBg }}
                 />
                 {theme.name}
@@ -350,7 +350,7 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
             {/* 底部文案修改 */}
             {showFooter && (
               <div className="flex items-center gap-2 max-w-sm">
-                <Label htmlFor="customMessage" className="text-sm border-r pr-2 shrink-0 border-gray-200">
+                <Label htmlFor="customMessage" className="text-sm border-r pr-2 shrink-0 border-border">
                   底部文案
                 </Label>
                 <Input 
@@ -366,7 +366,7 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
         </div>
 
         {/* 预览区域 */}
-        <div ref={previewRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 md:p-8 dark:bg-gray-950">
+        <div ref={previewRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/50 p-4 md:p-8">
           <div
             className="mx-auto"
             style={preview.width ? { width: preview.width * preview.scale, height: preview.height * preview.scale } : undefined}

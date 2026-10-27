@@ -127,13 +127,13 @@ export function UserMenu() {
             <span className="hidden max-w-[100px] truncate text-sm font-medium sm:inline">
               {user?.nickname || user?.email?.split('@')[0]}
             </span>
-            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 hidden sm:block" />
+            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground hidden sm:block" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <div className="px-3 py-2">
             <p className="text-sm font-medium">{user?.nickname || '未设置昵称'}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate('/my-snippets')}>

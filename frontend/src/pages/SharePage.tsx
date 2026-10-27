@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Lock, Loader2, Eye, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { api, Snippet } from '@/lib/api'
+import { api, getLanguageLabel, Snippet } from '@/lib/api'
 import { toast } from 'sonner'
 import { LazyCodeEditor, LazyDiffViewer } from '@/components/editor/LazyEditor'
-import { LANGUAGES } from '@/lib/api'
 
 export function SharePage() {
   const { shareToken } = useParams<{ shareToken: string }>()
@@ -82,10 +82,6 @@ export function SharePage() {
   }
 
   // 获取语言显示名称
-  const getLanguageLabel = (value: string) => {
-    return LANGUAGES.find(l => l.value === value)?.label || value
-  }
-
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -139,7 +135,7 @@ export function SharePage() {
                 />
               </div>
               {shareInfo.expires_at && (
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   该链接将于 {new Date(shareInfo.expires_at).toLocaleString()} 过期
                 </p>
               )}
@@ -157,20 +153,23 @@ export function SharePage() {
   if (!snippet) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-muted/50">
       {/* 头部 */}
-      <header className="border-b bg-white px-4 py-3 dark:bg-gray-900">
+      <header className="border-b bg-card px-4 py-3">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
               CodeDiff
             </Button>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">{shareInfo?.has_password ? '私密分享' : '分享链接'}</span>
+            <span className="text-muted-foreground/50">/</span>
+            <span className="text-sm text-muted-foreground">{shareInfo?.has_password ? '私密分享' : '分享链接'}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Eye className="h-3.5 w-3.5" />
-            <span>已查看 {shareInfo?.current_views || 1} 次</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" />
+              <span>已查看 {shareInfo?.current_views || 1} 次</span>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -178,10 +177,10 @@ export function SharePage() {
       {/* 内容 */}
       <main className="mx-auto max-w-6xl p-4">
         <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-gray-50 dark:bg-gray-900">
+          <CardHeader className="border-b bg-muted/50">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">{getLanguageLabel(snippet.language)}</p>
+                <p className="text-sm text-muted-foreground">{getLanguageLabel(snippet.language)}</p>
                 {snippet.message && (
                   <p className="mt-1 text-lg font-medium">{snippet.message}</p>
                 )}

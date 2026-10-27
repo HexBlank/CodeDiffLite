@@ -19,6 +19,7 @@ import {
   Shield
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -267,6 +268,7 @@ export default function UserSettingsPage() {
             返回
           </Button>
           <h1 className="ml-4 font-semibold">账号设置</h1>
+          <ThemeToggle className="ml-auto" />
         </div>
       </header>
 

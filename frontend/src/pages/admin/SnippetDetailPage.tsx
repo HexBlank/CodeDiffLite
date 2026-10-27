@@ -115,7 +115,7 @@ export default function SnippetDetailPage() {
   if (detailQuery.isPending) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-foreground"></div>
       </div>
     )
   }
@@ -123,7 +123,7 @@ export default function SnippetDetailPage() {
   if (detailQuery.isError || !detail) {
     return (
       <div className="py-12 text-center">
-        <p className="mb-4 text-gray-500">代码不存在、无权限访问，或已被删除</p>
+        <p className="mb-4 text-muted-foreground">代码不存在、无权限访问，或已被删除</p>
         <Button variant="outline" onClick={() => navigate('/admin/snippets')}>
           返回列表
         </Button>
@@ -140,7 +140,7 @@ export default function SnippetDetailPage() {
           </Button>
           <div>
             <h1 className="font-mono text-xl font-bold">{detail.id}</h1>
-            <p className="text-sm text-gray-500">代码详情</p>
+            <p className="text-sm text-muted-foreground">代码详情</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -164,17 +164,17 @@ export default function SnippetDetailPage() {
         <CardContent>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="flex items-center gap-2">
-              <Code2 className="h-4 w-4 text-gray-400" />
+              <Code2 className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-gray-500">语言</p>
+                <p className="text-xs text-muted-foreground">语言</p>
                 <Badge variant="secondary">{detail.language}</Badge>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <GitBranch className="h-4 w-4 text-gray-400" />
+              <GitBranch className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-gray-500">层级</p>
+                <p className="text-xs text-muted-foreground">层级</p>
                 <span className="font-medium">
                   {detail.depth === 0 ? '原始代码' : `回复层级 ${detail.depth}`}
                 </span>
@@ -182,18 +182,18 @@ export default function SnippetDetailPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-400" />
+              <Calendar className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-gray-500">创建时间</p>
+                <p className="text-xs text-muted-foreground">创建时间</p>
                 <span className="text-sm">{formatDate(detail.created_at)}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-400" />
+              <User className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-gray-500">作者标识</p>
-                <code className="rounded bg-gray-100 px-1 text-xs">
+                <p className="text-xs text-muted-foreground">作者标识</p>
+                <code className="rounded bg-muted px-1 text-xs">
                   {detail.author_token ? `${detail.author_token.slice(0, 8)}...` : '未知'}
                 </code>
               </div>
@@ -204,9 +204,9 @@ export default function SnippetDetailPage() {
             <div className="mt-4 grid grid-cols-2 gap-4 border-t pt-4">
               {detail.parent_id && (
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">上级代码</p>
+                  <p className="mb-1 text-xs text-muted-foreground">上级代码</p>
                   <Link to={`/admin/snippets/${detail.parent_id}`}>
-                    <Badge variant="outline" className="cursor-pointer hover:bg-gray-100">
+                    <Badge variant="outline" className="cursor-pointer hover:bg-muted">
                       <GitBranch className="mr-1 h-3 w-3" />
                       {detail.parent_id}
                     </Badge>
@@ -215,7 +215,7 @@ export default function SnippetDetailPage() {
               )}
 
               <div>
-                <p className="mb-1 text-xs text-gray-500">衍生版本</p>
+                <p className="mb-1 text-xs text-muted-foreground">衍生版本</p>
                 {detail.children_count > 0 ? (
                   <Button
                     variant="link"
@@ -225,7 +225,7 @@ export default function SnippetDetailPage() {
                     {detail.children_count} 个直接回复，共 {detail.descendants_count} 个衍生版本
                   </Button>
                 ) : (
-                  <span className="text-sm text-gray-500">无衍生版本</span>
+                  <span className="text-sm text-muted-foreground">无衍生版本</span>
                 )}
               </div>
             </div>
@@ -234,10 +234,10 @@ export default function SnippetDetailPage() {
           {detail.message && (
             <div className="mt-4 border-t pt-4">
               <div className="flex items-start gap-2">
-                <MessageSquare className="mt-0.5 h-4 w-4 text-gray-400" />
+                <MessageSquare className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="mb-1 text-xs text-gray-500">修改说明</p>
-                  <p className="rounded bg-gray-50 p-2 text-sm">{detail.message}</p>
+                  <p className="mb-1 text-xs text-muted-foreground">修改说明</p>
+                  <p className="rounded bg-muted/50 p-2 text-sm">{detail.message}</p>
                 </div>
               </div>
             </div>
@@ -287,7 +287,7 @@ export default function SnippetDetailPage() {
                     />
                   </div>
                   {detail.parent_message && (
-                    <p className="mt-2 text-sm text-gray-500">上级说明: {detail.parent_message}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">上级说明: {detail.parent_message}</p>
                   )}
                 </TabsContent>
               </>
@@ -351,18 +351,18 @@ export default function SnippetDetailPage() {
           <div className="flex-1 overflow-auto">
             {childrenQuery.isPending ? (
               <div className="flex items-center justify-center py-8">
-                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-gray-900"></div>
+                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-foreground"></div>
               </div>
             ) : childrenQuery.isError ? (
-              <p className="py-8 text-center text-gray-500">加载衍生版本列表失败</p>
+              <p className="py-8 text-center text-muted-foreground">加载衍生版本列表失败</p>
             ) : childrenList.length === 0 ? (
-              <p className="py-8 text-center text-gray-500">暂无衍生版本</p>
+              <p className="py-8 text-center text-muted-foreground">暂无衍生版本</p>
             ) : (
               <div className="space-y-3">
                 {childrenList.map((child, index) => (
                   <div
                     key={child.id}
-                    className="rounded-lg border p-3 transition-colors hover:bg-gray-50"
+                    className="rounded-lg border p-3 transition-colors hover:bg-muted/50"
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -375,15 +375,15 @@ export default function SnippetDetailPage() {
                           {child.id}
                         </Link>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {formatShortDate(child.created_at)}
                       </span>
                     </div>
-                    <code className="block truncate rounded bg-gray-100 px-2 py-1 text-xs">
+                    <code className="block truncate rounded bg-muted px-2 py-1 text-xs">
                       {child.code_preview || '(空)'}
                     </code>
                     {child.message && (
-                      <p className="mt-2 text-xs text-gray-600">说明: {child.message}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">说明: {child.message}</p>
                     )}
                     <div className="mt-2 flex gap-2">
                       <Link

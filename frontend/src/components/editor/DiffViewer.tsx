@@ -11,12 +11,14 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import {
   baseExtensions,
+  darkModeExtension,
   focusAtVisibleTop,
   languageIndent,
   loadLanguage,
   readOnlyExtensions,
   wordWrapExtension,
 } from '@/lib/codemirror'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface DiffViewerProps {
   original: string
@@ -49,11 +51,13 @@ export function DiffViewer({
   const onChangeRef = useRef(onModifiedChange)
   onChangeRef.current = onModifiedChange
   const [chunkCount, setChunkCount] = useState(0)
+  const dark = useTheme().resolvedTheme === 'dark'
 
   const compartments = useRef({
     language: new Compartment(),
     wordWrap: new Compartment(),
     readOnly: new Compartment(),
+    theme: new Compartment(),
   }).current
 
   const editable = !!onModifiedChange && !readOnly
@@ -69,6 +73,7 @@ export function DiffViewer({
       baseExtensions(),
       compartments.language.of(languageIndent(language)),
       compartments.wordWrap.of(wordWrapExtension(wordWrap)),
+      compartments.theme.of(darkModeExtension(dark)),
     ]
 
     const modifiedExtensions: Extension[] = [
@@ -164,6 +169,12 @@ export function DiffViewer({
       view.dispatch({ effects: compartments.wordWrap.reconfigure(wordWrapExtension(wordWrap)) })
     }
   }, [wordWrap, compartments])
+
+  useEffect(() => {
+    for (const view of viewsRef.current) {
+      view.dispatch({ effects: compartments.theme.reconfigure(darkModeExtension(dark)) })
+    }
+  }, [dark, compartments])
 
   const jump = (direction: 'prev' | 'next') => {
     const view = viewsRef.current[viewsRef.current.length - 1]

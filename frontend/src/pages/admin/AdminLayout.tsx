@@ -1,5 +1,6 @@
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { AdminSidebar } from '@/components/admin-sidebar'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import {
   SidebarProvider,
   SidebarInset,
@@ -97,6 +98,7 @@ export default function AdminLayout() {
               ))}
             </BreadcrumbList>
           </Breadcrumb>
+          <ThemeToggle className="ml-auto" />
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <div className="mx-auto max-w-7xl">

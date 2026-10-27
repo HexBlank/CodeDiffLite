@@ -98,7 +98,7 @@ const editorTheme = EditorView.theme({
     fontFamily: 'var(--font-code)',
     lineHeight: '1.6',
   },
-  '.cm-content': { padding: '12px 0' },
+  '.cm-content': { padding: '12px 0', caretColor: 'oklch(var(--foreground))' },
   '.cm-gutters': {
     backgroundColor: 'transparent',
     color: 'oklch(var(--muted-foreground) / 0.7)',
@@ -203,6 +203,11 @@ export function focusAtVisibleTop(view: EditorView) {
 
 export function readOnlyExtensions(readOnly: boolean): Extension {
   return readOnly ? [EditorState.readOnly.of(true), EditorView.editable.of(false)] : []
+}
+
+/** 告诉 CodeMirror 当前是否为暗色背景，对比视图的增删配色、搜索面板等会随之切换 */
+export function darkModeExtension(dark: boolean): Extension {
+  return EditorView.darkTheme.of(dark)
 }
 
 export function wordWrapExtension(wordWrap: 'on' | 'off'): Extension {

@@ -37,8 +37,8 @@ export default function LoginPage() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center bg-muted/50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     )
   }
@@ -52,12 +52,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
-            <div className="rounded-full bg-gray-100 p-3">
-              <Shield className="h-8 w-8 text-gray-700" />
+            <div className="rounded-full bg-muted p-3">
+              <Shield className="h-8 w-8 text-foreground" />
             </div>
           </div>
           <CardTitle className="text-xl">管理员登录</CardTitle>
@@ -104,7 +104,7 @@ export default function LoginPage() {
             </Button>
 
             <div className="text-center">
-              <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">
+              <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
                 返回首页
               </Link>
             </div>

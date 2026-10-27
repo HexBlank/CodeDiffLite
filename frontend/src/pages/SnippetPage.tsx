@@ -9,7 +9,6 @@ import {
   Code2,
   GitCompare,
   Edit3,
-  ChevronRight,
   Copy,
   Check,
   Plus,
@@ -46,7 +45,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 import { RestrictedShareDialog, ShareLinkDialog } from '@/components/ShareDialogs'
-import { api, LANGUAGES, type LanguageValue, type SnippetListItem } from '@/lib/api'
+import { ThemeSubMenu, ThemeToggle } from '@/components/ThemeToggle'
+import { ReplyList } from '@/components/ReplyList'
+import { api, LANGUAGES, type LanguageValue } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCopy } from '@/hooks/use-copy'
 import { useEditorFocused } from '@/hooks/use-editor-focus'
@@ -215,7 +216,7 @@ export function SnippetPage() {
       {hasDiff && (
         <TabsTrigger value="diff" className="flex-1 md:flex-none text-xs gap-1.5 data-[state=active]:bg-background">
           <GitCompare className="w-3.5 h-3.5" />
-          对比<span className="hidden md:inline">视图</span>
+          <span>对比<span className="hidden md:inline">视图</span></span>
         </TabsTrigger>
       )}
       <TabsTrigger value="edit" className="flex-1 md:flex-none text-xs gap-1.5 data-[state=active]:bg-background">
@@ -304,6 +305,8 @@ export function SnippetPage() {
               生成分享图
             </Button>
 
+            <ThemeToggle className="hidden md:inline-flex" />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-10 w-10 md:h-9 md:w-9 shrink-0" aria-label="更多操作">
@@ -327,6 +330,7 @@ export function SnippetPage() {
                     限制性分享
                   </DropdownMenuItem>
                 )}
+                <ThemeSubMenu className="md:hidden" />
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -604,49 +608,5 @@ export function SnippetPage() {
         </Suspense>
       )}
     </div>
-  )
-}
-
-function ReplyList({ replies, onSelect }: { replies: SnippetListItem[]; onSelect: (id: string) => void }) {
-  return (
-    <div className="space-y-2">
-      {replies.map((reply) => (
-        <ReplyCard key={reply.id} reply={reply} onClick={() => onSelect(reply.id)} />
-      ))}
-    </div>
-  )
-}
-
-// 回复卡片组件
-function ReplyCard({ reply, onClick }: { reply: SnippetListItem; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full text-left p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-secondary/50 hover:border-primary/30 transition-all group card-interactive"
-    >
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <span className="font-mono text-xs text-muted-foreground">
-          #{reply.id.substring(0, 6)}
-        </span>
-        <span className="text-[10px] text-muted-foreground">
-          {formatDistanceToNow(reply.created_at)}
-        </span>
-      </div>
-
-      {reply.message ? (
-        <p className="text-sm line-clamp-2 group-hover:text-primary transition-colors">
-          {reply.message}
-        </p>
-      ) : (
-        <p className="text-xs text-muted-foreground font-mono line-clamp-2">
-          {reply.code_preview}
-        </p>
-      )}
-
-      <div className="flex items-center gap-1 mt-2 text-xs text-primary md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-        查看修改
-        <ChevronRight className="w-3 h-3" />
-      </div>
-    </button>
   )
 }

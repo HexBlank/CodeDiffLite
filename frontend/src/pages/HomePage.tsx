@@ -16,6 +16,7 @@ import {
 import { RestrictedShareDialog, ShareLinkDialog } from "@/components/ShareDialogs";
 import { api, LANGUAGES, type LanguageValue } from "@/lib/api";
 import { UserMenu } from "@/components/UserMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditorFocused } from "@/hooks/use-editor-focus";
 import { useIsTouch } from "@/hooks/use-mobile";
@@ -159,6 +160,7 @@ export function HomePage() {
               {shareButtonContent}
             </Button>
 
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>

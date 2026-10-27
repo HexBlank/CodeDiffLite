@@ -377,3 +377,23 @@ export const LANGUAGES = [
 ] as const
 
 export type LanguageValue = typeof LANGUAGES[number]['value']
+
+export function getLanguageLabel(value: string) {
+  return LANGUAGES.find((l) => l.value === value)?.label || value
+}
+
+const LANGUAGE_BADGE_CLASSES: Record<string, string> = {
+  python: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  javascript: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+  typescript: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  java: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  cpp: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  c: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  go: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
+  rust: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+}
+
+/** 语言徽章的配色（含暗色模式） */
+export function getLanguageBadgeClass(value: string) {
+  return LANGUAGE_BADGE_CLASSES[value] || 'bg-muted text-foreground'
+}

@@ -208,7 +208,7 @@ export default function SnippetsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">代码管理</h1>
-          <p className="text-gray-500">查看和管理所有分享的代码</p>
+          <p className="text-muted-foreground">查看和管理所有分享的代码</p>
         </div>
         <Button
           variant="outline"
@@ -268,14 +268,14 @@ export default function SnippetsPage() {
         <CardContent className="p-0">
           {snippetsQuery.isPending ? (
             <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
             </div>
           ) : snippetsQuery.isError ? (
-            <div className="text-center text-gray-500 py-12">
+            <div className="text-center text-muted-foreground py-12">
               加载数据失败
             </div>
           ) : !data || data.items.length === 0 ? (
-            <div className="text-center text-gray-500 py-12">
+            <div className="text-center text-muted-foreground py-12">
               暂无数据
             </div>
           ) : (
@@ -309,18 +309,18 @@ export default function SnippetsPage() {
                                 to={`/admin/snippets/${item.parent_id}`}
                                 title={`查看上级: ${item.parent_id}`}
                               >
-                                <GitBranch className="h-3 w-3 text-gray-400 hover:text-blue-500" />
+                                <GitBranch className="h-3 w-3 text-muted-foreground hover:text-blue-500" />
                               </Link>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="max-w-md">
-                            <code className="text-xs bg-gray-100 px-2 py-1 rounded block truncate">
+                            <code className="text-xs bg-muted px-2 py-1 rounded block truncate">
                               {item.code_preview || '(空)'}
                             </code>
                             {item.message && (
-                              <p className="text-xs text-gray-500 mt-1 truncate">
+                              <p className="text-xs text-muted-foreground mt-1 truncate">
                                 💬 {item.message}
                               </p>
                             )}
@@ -332,12 +332,12 @@ export default function SnippetsPage() {
                         <TableCell>
                           {item.depth > 0 ? (
                             <Link to={`/admin/snippets/${item.parent_id}`}>
-                              <Badge variant="outline" className="cursor-pointer hover:bg-gray-100">
+                              <Badge variant="outline" className="cursor-pointer hover:bg-muted">
                                 L{item.depth}
                               </Badge>
                             </Link>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -350,10 +350,10 @@ export default function SnippetsPage() {
                               <span>{item.children_count}</span>
                             </button>
                           ) : (
-                            <span className="text-gray-400">0</span>
+                            <span className="text-muted-foreground">0</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">
+                        <TableCell className="text-sm text-muted-foreground">
                           {formatDate(item.created_at)}
                         </TableCell>
                         <TableCell className="text-right">
@@ -389,7 +389,7 @@ export default function SnippetsPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t gap-3">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   共 {data.total} 条记录
                 </p>
                 <div className="flex items-center gap-2 flex-wrap justify-center">
@@ -413,7 +413,7 @@ export default function SnippetsPage() {
                   </Button>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">第</span>
+                    <span className="text-sm text-muted-foreground">第</span>
                     <Input
                       type="number"
                       min={1}
@@ -424,7 +424,7 @@ export default function SnippetsPage() {
                       onKeyDown={handlePageInputKeyDown}
                       className="w-16 h-8 text-center"
                     />
-                    <span className="text-sm text-gray-600">/ {data.total_pages} 页</span>
+                    <span className="text-sm text-muted-foreground">/ {data.total_pages} 页</span>
                     <Button
                       variant="outline"
                       size="sm"
@@ -476,18 +476,18 @@ export default function SnippetsPage() {
           <div className="flex-1 overflow-auto">
             {childrenQuery.isPending ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-foreground"></div>
               </div>
             ) : childrenQuery.isError ? (
-              <p className="text-center text-gray-500 py-8">加载回复列表失败</p>
+              <p className="text-center text-muted-foreground py-8">加载回复列表失败</p>
             ) : childrenList.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">暂无回复</p>
+              <p className="text-center text-muted-foreground py-8">暂无回复</p>
             ) : (
               <div className="space-y-3">
                 {childrenList.map((child, index) => (
                   <div
                     key={child.id}
-                    className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -500,15 +500,15 @@ export default function SnippetsPage() {
                           {child.id}
                         </Link>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {formatDate(child.created_at)}
                       </span>
                     </div>
-                    <code className="text-xs bg-gray-100 px-2 py-1 rounded block truncate">
+                    <code className="text-xs bg-muted px-2 py-1 rounded block truncate">
                       {child.code_preview || '(空)'}
                     </code>
                     {child.message && (
-                      <p className="text-xs text-gray-600 mt-2">
+                      <p className="text-xs text-muted-foreground mt-2">
                         💬 {child.message}
                       </p>
                     )}

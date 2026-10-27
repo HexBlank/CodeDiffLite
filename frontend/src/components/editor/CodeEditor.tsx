@@ -3,12 +3,14 @@ import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import {
   baseExtensions,
+  darkModeExtension,
   focusAtVisibleTop,
   languageIndent,
   loadLanguage,
   readOnlyExtensions,
   wordWrapExtension,
 } from '@/lib/codemirror'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface CodeEditorProps {
   value: string
@@ -31,11 +33,13 @@ export function CodeEditor({
   const viewRef = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  const dark = useTheme().resolvedTheme === 'dark'
 
   const compartments = useRef({
     language: new Compartment(),
     readOnly: new Compartment(),
     wordWrap: new Compartment(),
+    theme: new Compartment(),
   }).current
 
   // 创建编辑器（只在挂载时执行一次，其余属性通过 compartment 动态切换）
@@ -49,6 +53,7 @@ export function CodeEditor({
           compartments.language.of(languageIndent(language)),
           compartments.readOnly.of(readOnlyExtensions(readOnly)),
           compartments.wordWrap.of(wordWrapExtension(wordWrap)),
+          compartments.theme.of(darkModeExtension(dark)),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {
               onChangeRef.current?.(update.state.doc.toString())
@@ -110,6 +115,12 @@ export function CodeEditor({
       effects: compartments.wordWrap.reconfigure(wordWrapExtension(wordWrap)),
     })
   }, [wordWrap, compartments])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: compartments.theme.reconfigure(darkModeExtension(dark)),
+    })
+  }, [dark, compartments])
 
   return <div ref={containerRef} className={`code-editor h-full w-full ${className}`} />
 }

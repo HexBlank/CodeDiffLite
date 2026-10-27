@@ -182,10 +182,11 @@ export function VersionTreeVisualizer({
         const targetId = d.target.data.id
         return (sourceId === selectedNode || targetId === selectedNode) ? 'none' : '5,5'
       })
-      .attr('stroke', (d: any) => {
+      // 用 style 而不是 attr，SVG 属性里不能使用 CSS 变量；颜色随主题切换
+      .style('stroke', (d: any) => {
         const sourceId = d.source.data.id
         const targetId = d.target.data.id
-        return (sourceId === selectedNode || targetId === selectedNode) ? '#6366f1' : '#e5e7eb'
+        return (sourceId === selectedNode || targetId === selectedNode) ? '#6366f1' : 'oklch(var(--border))'
       })
 
     // 绘制节点组
@@ -230,14 +231,7 @@ export function VersionTreeVisualizer({
         }
         return nodeId === selectedNode ? 'url(#activeNodeGradient)' : 'url(#nodeGradient)'
       })
-      .attr('stroke', (d: any) => {
-        const nodeId = d.data.id
-        // 多选模式下添加边框
-        if (compareMode && selectedForCompare.includes(nodeId)) {
-          return '#fff'
-        }
-        return '#fff'
-      })
+      .style('stroke', 'oklch(var(--background))')
       .attr('stroke-width', (d: any) => {
         const nodeId = d.data.id
         if (compareMode && selectedForCompare.includes(nodeId)) {
@@ -266,7 +260,7 @@ export function VersionTreeVisualizer({
     nodes.append('text')
       .attr('dy', nodeRadius + 15)
       .attr('text-anchor', 'middle')
-      .attr('fill', '#6b7280')
+      .style('fill', 'oklch(var(--muted-foreground))')
       .attr('font-size', '10px')
       .text((d: any) => `v${d.depth}`)
 
@@ -324,7 +318,7 @@ export function VersionTreeVisualizer({
     : descendants.find(d => d.id === selectedNode)
 
   return (
-    <div className="relative rounded-lg border bg-white dark:bg-gray-900 overflow-hidden h-full flex flex-col">
+    <div className="relative rounded-lg border bg-card overflow-hidden h-full flex flex-col">
       {/* 顶部提示栏 */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-indigo-50 dark:bg-indigo-950/30 border-b border-indigo-100 dark:border-indigo-900/50 px-4 py-2 flex items-center justify-center text-sm text-indigo-700 dark:text-indigo-300">
         {compareMode ? (
@@ -360,13 +354,13 @@ export function VersionTreeVisualizer({
       </div>
 
       {/* 缩放比例显示 */}
-      <div className="absolute right-4 top-14 z-10 rounded-md bg-white/90 px-2 py-1 text-xs text-gray-500 shadow dark:bg-gray-800">
+      <div className="absolute right-4 top-14 z-10 rounded-md bg-card/90 px-2 py-1 text-xs text-muted-foreground shadow">
         {Math.round(zoom * 100)}%
       </div>
 
       {/* 选中节点信息 */}
       {!compareMode && selectedNodeData && (
-        <div className="absolute bottom-4 left-4 right-4 z-10 rounded-lg border border-indigo-100 dark:border-indigo-900 bg-white/95 p-3 shadow-lg backdrop-blur dark:bg-gray-800/95 transition-all">
+        <div className="absolute bottom-4 left-4 right-4 z-10 rounded-lg border border-indigo-100 dark:border-indigo-900 bg-card/95 p-3 shadow-lg backdrop-blur transition-all">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
               <GitCommit className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
@@ -383,15 +377,15 @@ export function VersionTreeVisualizer({
                   <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50 dark:border-green-900 dark:text-green-400 dark:bg-green-900/30">当前</Badge>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-2">
+              <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2">
                 <span>{formatDistanceToNow(selectedNodeData.created_at)}</span>
-                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                <span className="w-1 h-1 rounded-full bg-muted-foreground/30"></span>
                 <span className="font-mono">{selectedNodeData.id.substring(0, 8)}</span>
               </p>
             </div>
             <Button 
               size="sm" 
-              className={selectedNodeData.id === currentId ? "bg-gray-100 text-gray-400 cursor-not-allowed hover:bg-gray-100" : ""}
+              className={selectedNodeData.id === currentId ? "bg-muted text-muted-foreground cursor-not-allowed hover:bg-muted" : ""}
               onClick={() => {
                 if (selectedNodeData.id !== currentId) {
                   navigate(`/${selectedNodeData.id}`)
@@ -406,37 +400,37 @@ export function VersionTreeVisualizer({
 
       {/* 多选对比模式信息栏 */}
       {compareMode && (
-        <div className="absolute bottom-4 left-4 right-4 z-10 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-white/95 p-3 shadow-lg backdrop-blur dark:bg-gray-800/95">
+        <div className="absolute bottom-4 left-4 right-4 z-10 rounded-lg border border-amber-200 dark:border-amber-900/50 bg-card/95 p-3 shadow-lg backdrop-blur">
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
             <div className="flex items-center gap-2 flex-1 overflow-hidden">
-              <div className={`flex items-center gap-2 flex-1 p-2 rounded-md border ${selectedForCompare[0] ? 'border-amber-200 bg-amber-50 dark:bg-amber-900/20' : 'border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50'} transition-colors`}>
+              <div className={`flex items-center gap-2 flex-1 p-2 rounded-md border ${selectedForCompare[0] ? 'border-amber-200 bg-amber-50 dark:bg-amber-900/20' : 'border-dashed border-border bg-muted/50'} transition-colors`}>
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white text-xs font-bold shadow-sm">
                   1
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className={`text-sm truncate ${!selectedForCompare[0] && 'text-gray-400'}`}>
+                  <span className={`text-sm truncate ${!selectedForCompare[0] && 'text-muted-foreground'}`}>
                     {selectedForCompare[0] 
                       ? (allVersions.find(v => v.id === selectedForCompare[0])?.message || '无标题修改')
                       : '点击节点选择基准版本'}
                   </span>
                   {selectedForCompare[0] && (
-                    <span className="text-[10px] text-gray-500 font-mono">{selectedForCompare[0].substring(0, 8)}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{selectedForCompare[0].substring(0, 8)}</span>
                   )}
                 </div>
               </div>
-              <GitCompare className="h-5 w-5 text-gray-400 shrink-0" />
-              <div className={`flex items-center gap-2 flex-1 p-2 rounded-md border ${selectedForCompare[1] ? 'border-red-200 bg-red-50 dark:bg-red-900/20' : 'border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50'} transition-colors`}>
-                <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${selectedForCompare[0] ? 'bg-red-500 shadow-sm' : 'bg-gray-300 dark:bg-gray-700'} text-white text-xs font-bold transition-colors`}>
+              <GitCompare className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className={`flex items-center gap-2 flex-1 p-2 rounded-md border ${selectedForCompare[1] ? 'border-red-200 bg-red-50 dark:bg-red-900/20' : 'border-dashed border-border bg-muted/50'} transition-colors`}>
+                <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${selectedForCompare[0] ? 'bg-red-500 shadow-sm' : 'bg-muted-foreground/30'} text-white text-xs font-bold transition-colors`}>
                   2
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className={`text-sm truncate ${!selectedForCompare[1] && 'text-gray-400'}`}>
+                  <span className={`text-sm truncate ${!selectedForCompare[1] && 'text-muted-foreground'}`}>
                     {selectedForCompare[1] 
                       ? (allVersions.find(v => v.id === selectedForCompare[1])?.message || '无标题修改')
                       : '点击节点选择目标版本'}
                   </span>
                   {selectedForCompare[1] && (
-                    <span className="text-[10px] text-gray-500 font-mono">{selectedForCompare[1].substring(0, 8)}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{selectedForCompare[1].substring(0, 8)}</span>
                   )}
                 </div>
               </div>

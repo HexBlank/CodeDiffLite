@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Header } from '@/components/layout/Header'
 import { useAuth } from '@/contexts/AuthContext'
-import { api, type MySnippetItem, type MySnippetsResponse } from '@/lib/api'
+import { api, getLanguageBadgeClass, type MySnippetItem, type MySnippetsResponse } from '@/lib/api'
 import { myQueryKeys } from '@/lib/query-keys'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from '@/lib/date'
@@ -124,19 +124,6 @@ export function MySnippetsPage() {
     deleteSnippetMutation.mutate(deleteTarget.id)
   }
 
-  const getLanguageColor = (lang: string) => {
-    const colors: Record<string, string> = {
-      python: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-      javascript: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-      typescript: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-      java: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-      cpp: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-      go: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
-      rust: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-    }
-    return colors[lang] || 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-  }
-
   const renderPagination = () => {
     const totalPages = snippetsQuery.data?.total_pages || 1
     if (totalPages <= 1) return null
@@ -193,177 +180,50 @@ export function MySnippetsPage() {
             <TabsTrigger value="archived">已归档</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-4">
-            {snippetsQuery.isPending ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : snippetsQuery.isError ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <Code2 className="h-12 w-12 text-gray-300 mb-4" />
-                  <p className="text-gray-500">加载代码片段失败</p>
-                </CardContent>
-              </Card>
-            ) : snippets.length === 0 ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <Code2 className="h-12 w-12 text-gray-300 mb-4" />
-                  <p className="text-gray-500">暂无代码片段</p>
-                  <Button className="mt-4" onClick={() => navigate('/')}>创建新代码</Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {snippets.map((snippet) => (
-                  <Card key={snippet.id} className="group hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className={getLanguageColor(snippet.language)}>
-                            {snippet.language}
-                          </Badge>
-                          {!snippet.is_public && (
-                            <Lock className="h-3.5 w-3.5 text-amber-500" />
-                          )}
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleTogglePublic(snippet)}>
-                              {snippet.is_public ? (
-                                <>
-                                  <Lock className="mr-2 h-4 w-4" />
-                                  设为私密
-                                </>
-                              ) : (
-                                <>
-                                  <Unlock className="mr-2 h-4 w-4" />
-                                  设为公开
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleToggleFork(snippet)}>
-                              <GitFork className="mr-2 h-4 w-4" />
-                              {snippet.allow_fork ? '禁止 Fork' : '允许 Fork'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleArchive(snippet)}>
-                              <EyeOff className="mr-2 h-4 w-4" />
-                              归档
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setDeleteTarget(snippet)}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              删除
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <CardTitle className="text-sm font-medium mt-2 line-clamp-1">
-                        {snippet.message || '无标题'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <pre className="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 p-2 rounded-lg line-clamp-3 overflow-hidden">
-                        {snippet.code_preview}
-                      </pre>
-                      <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
-                        <span>{formatDistanceToNow(snippet.created_at)}</span>
-                        <div className="flex items-center gap-3">
-                          {snippet.descendants_count > 0 && (
-                            <span className="flex items-center gap-1">
-                              <GitFork className="h-3 w-3" />
-                              {snippet.descendants_count}
-                            </span>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => navigate(`/${snippet.id}`)}
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}            {renderPagination()}          </TabsContent>
+          {(['active', 'archived'] as const).map((tab) => {
+            const archived = tab === 'archived'
+            const EmptyIcon = archived ? EyeOff : Code2
 
-          <TabsContent value="archived" className="space-y-4">
-            {snippetsQuery.isPending ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : snippetsQuery.isError ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <EyeOff className="h-12 w-12 text-gray-300 mb-4" />
-                  <p className="text-gray-500">加载归档代码失败</p>
-                </CardContent>
-              </Card>
-            ) : snippets.length === 0 ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <EyeOff className="h-12 w-12 text-gray-300 mb-4" />
-                  <p className="text-gray-500">暂无归档代码</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {snippets.map((snippet) => (
-                  <Card key={snippet.id} className="opacity-60 hover:opacity-100 transition-opacity">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className={getLanguageColor(snippet.language)}>
-                            {snippet.language}
-                          </Badge>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleArchive(snippet)}>
-                              <Unlock className="mr-2 h-4 w-4" />
-                              恢复
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setDeleteTarget(snippet)}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              删除
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <CardTitle className="text-sm font-medium mt-2 line-clamp-1">
-                        {snippet.message || '无标题'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <pre className="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 p-2 rounded-lg line-clamp-3 overflow-hidden">
-                        {snippet.code_preview}
-                      </pre>
+            return (
+              <TabsContent key={tab} value={tab} className="space-y-4">
+                {snippetsQuery.isPending ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : snippetsQuery.isError || snippets.length === 0 ? (
+                  <Card className="py-12">
+                    <CardContent className="flex flex-col items-center justify-center text-center">
+                      <EmptyIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <p className="text-muted-foreground">
+                        {snippetsQuery.isError
+                          ? archived ? '加载归档代码失败' : '加载代码片段失败'
+                          : archived ? '暂无归档代码' : '暂无代码片段'}
+                      </p>
+                      {!archived && !snippetsQuery.isError && (
+                        <Button className="mt-4" onClick={() => navigate('/')}>创建新代码</Button>
+                      )}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            )}
-            {renderPagination()}
-          </TabsContent>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {snippets.map((snippet) => (
+                      <SnippetCard
+                        key={snippet.id}
+                        snippet={snippet}
+                        archived={archived}
+                        onOpen={() => navigate(`/${snippet.id}`)}
+                        onTogglePublic={() => handleTogglePublic(snippet)}
+                        onToggleFork={() => handleToggleFork(snippet)}
+                        onArchive={() => handleArchive(snippet)}
+                        onDelete={() => setDeleteTarget(snippet)}
+                      />
+                    ))}
+                  </div>
+                )}
+                {renderPagination()}
+              </TabsContent>
+            )
+          })}
         </Tabs>
       </main>
 
@@ -384,5 +244,91 @@ export function MySnippetsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  )
+}
+
+interface SnippetCardProps {
+  snippet: MySnippetItem
+  archived: boolean
+  onOpen: () => void
+  onTogglePublic: () => void
+  onToggleFork: () => void
+  onArchive: () => void
+  onDelete: () => void
+}
+
+function SnippetCard({ snippet, archived, onOpen, onTogglePublic, onToggleFork, onArchive, onDelete }: SnippetCardProps) {
+  return (
+    <Card
+      className={archived ? 'opacity-60 hover:opacity-100 transition-opacity' : 'group hover:shadow-md transition-shadow'}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className={getLanguageBadgeClass(snippet.language)}>
+              {snippet.language}
+            </Badge>
+            {!archived && !snippet.is_public && (
+              <Lock className="h-3.5 w-3.5 text-amber-500" />
+            )}
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 -mr-2 -mt-1" aria-label="更多操作">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {!archived && (
+                <>
+                  <DropdownMenuItem onClick={onTogglePublic}>
+                    {snippet.is_public ? <Lock className="mr-2 h-4 w-4" /> : <Unlock className="mr-2 h-4 w-4" />}
+                    {snippet.is_public ? '设为私密' : '设为公开'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onToggleFork}>
+                    <GitFork className="mr-2 h-4 w-4" />
+                    {snippet.allow_fork ? '禁止 Fork' : '允许 Fork'}
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuItem onClick={onArchive}>
+                {archived ? <Unlock className="mr-2 h-4 w-4" /> : <EyeOff className="mr-2 h-4 w-4" />}
+                {archived ? '恢复' : '归档'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-red-600 focus:text-red-600">
+                <Trash2 className="mr-2 h-4 w-4" />
+                删除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <CardTitle className="text-sm font-medium mt-2 line-clamp-1">
+          {snippet.message || '无标题'}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* 整块预览区域都可点击打开，手机上更好点 */}
+        <button type="button" onClick={onOpen} className="block w-full text-left" aria-label="打开代码">
+          <pre className="text-xs text-muted-foreground bg-muted/50 p-2 rounded-lg line-clamp-3 overflow-hidden">
+            {snippet.code_preview}
+          </pre>
+        </button>
+        <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+          <span>{formatDistanceToNow(snippet.created_at)}</span>
+          <div className="flex items-center gap-3">
+            {snippet.descendants_count > 0 && (
+              <span className="flex items-center gap-1">
+                <GitFork className="h-3 w-3" />
+                {snippet.descendants_count}
+              </span>
+            )}
+            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2 text-xs" onClick={onOpen}>
+              打开
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
