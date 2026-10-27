@@ -1,11 +1,16 @@
 import { Toaster as Sonner } from "sonner"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const isMobile = useIsMobile()
+
   return (
     <Sonner
       theme="light"
+      // 移动端放在顶部，避免遮挡编辑器和底部操作栏
+      position={isMobile ? "top-center" : "bottom-right"}
       className="toaster group"
       toastOptions={{
         classNames: {

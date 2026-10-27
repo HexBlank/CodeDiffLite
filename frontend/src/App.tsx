@@ -66,7 +66,7 @@ function App() {
               <Route path="/:id" element={<SnippetPage />} />
             </Routes>
           </Suspense>
-          <Toaster richColors position="bottom-right" />
+          <Toaster richColors />
         </div>
       </AuthProvider>
     </ErrorBoundary>

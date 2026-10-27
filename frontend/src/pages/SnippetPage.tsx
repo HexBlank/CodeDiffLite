@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-  Share2,
+  Send,
   Loader2,
   Code2,
   GitCompare,
@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Copy,
   Check,
-  ExternalLink,
   Plus,
   MessageSquare,
   Clock,
@@ -20,10 +19,10 @@ import {
   GitFork,
   Image,
   Lock,
-  MoreVertical,
-  AlignLeft,
-  Columns,
-  Split,
+  MoreHorizontal,
+  WrapText,
+  Columns2,
+  Rows2,
 } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { LazyCodeEditor, LazyDiffViewer } from '@/components/editor/LazyEditor'
@@ -37,25 +36,20 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
+import { RestrictedShareDialog, ShareLinkDialog } from '@/components/ShareDialogs'
 import { api, LANGUAGES, type LanguageValue, type SnippetListItem } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCopy } from '@/hooks/use-copy'
+import { useEditorFocused } from '@/hooks/use-editor-focus'
 import { formatDistanceToNow } from '@/lib/date'
-import { lazy, Suspense } from 'react'
+import { cn } from '@/lib/utils'
 
 const VersionTreeVisualizer = lazy(() => import('@/components/VersionTreeVisualizer').then(m => ({ default: m.VersionTreeVisualizer })))
 const CodeShareImage = lazy(() => import('@/components/CodeShareImage').then(m => ({ default: m.CodeShareImage })))
@@ -68,6 +62,8 @@ export function SnippetPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { isLoggedIn } = useAuth()
+  const editorFocused = useEditorFocused()
+  const { copied: codeCopied, copy: copyCode } = useCopy('代码已复制')
 
   // 状态
   const [viewMode, setViewMode] = useState<ViewMode>('edit')
@@ -75,9 +71,9 @@ export function SnippetPage() {
   const [language, setLanguage] = useState<LanguageValue>('plaintext')
   const [message, setMessage] = useState('')
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [submitDrawerOpen, setSubmitDrawerOpen] = useState(false)
+  const [repliesDrawerOpen, setRepliesDrawerOpen] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
-  const [codeCopied, setCodeCopied] = useState(false)
   const [showShareImage, setShowShareImage] = useState(false)
   const [showPrivateShare, setShowPrivateShare] = useState(false)
   const [showVersionCompare, setShowVersionCompare] = useState(false)
@@ -104,6 +100,8 @@ export function SnippetPage() {
   const replies = treeQuery.data?.descendants || []
   const isOriginal = snippet?.depth === 0
   const isOwner = treeQuery.data?.is_owner || false
+  const showTreeTab = isOwner && replies.length > 0
+  const showReplies = isOwner && isOriginal && replies.length > 0
 
   // 初始化代码
   useEffect(() => {
@@ -125,6 +123,7 @@ export function SnippetPage() {
       }),
     onSuccess: (data) => {
       setSavedId(data.id)
+      setSubmitDrawerOpen(false)
       setShareDialogOpen(true)
       queryClient.invalidateQueries({ queryKey: ['tree', id] })
       toast.success('修改已保存', {
@@ -156,54 +155,15 @@ export function SnippetPage() {
 
   const shareUrl = savedId ? `${window.location.origin}/${savedId}` : ''
 
-  const handleCopy = async () => {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(shareUrl)
-      } else {
-        const textArea = document.createElement('textarea')
-        textArea.value = shareUrl
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-9999px'
-        document.body.appendChild(textArea)
-        textArea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textArea)
-      }
-      setCopied(true)
-      toast.success('链接已复制')
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      toast.error('复制失败')
-    }
-  }
-
-  const handleCopyCode = async () => {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(code)
-      } else {
-        const textArea = document.createElement('textarea')
-        textArea.value = code
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-9999px'
-        document.body.appendChild(textArea)
-        textArea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textArea)
-      }
-      setCodeCopied(true)
-      toast.success('代码已复制')
-      setTimeout(() => setCodeCopied(false), 2000)
-    } catch {
-      toast.error('复制失败')
-    }
+  const openVersionCompare = () => {
+    setCompareIds({})
+    setShowVersionCompare(true)
   }
 
   // 加载状态
   if (snippetQuery.isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">加载代码中...</p>
@@ -215,7 +175,7 @@ export function SnippetPage() {
   // 错误状态
   if (snippetQuery.isError || !snippet) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center px-4">
         <div className="text-center animate-fade-up">
           <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
             <Code2 className="w-8 h-8 text-destructive" />
@@ -231,90 +191,78 @@ export function SnippetPage() {
     )
   }
 
+  const viewTabs = (
+    <>
+      {hasDiff && (
+        <TabsTrigger value="diff" className="flex-1 md:flex-none text-xs gap-1.5 data-[state=active]:bg-background">
+          <GitCompare className="w-3.5 h-3.5" />
+          对比<span className="hidden md:inline">视图</span>
+        </TabsTrigger>
+      )}
+      <TabsTrigger value="edit" className="flex-1 md:flex-none text-xs gap-1.5 data-[state=active]:bg-background">
+        <Edit3 className="w-3.5 h-3.5" />
+        编辑<span className="hidden md:inline">模式</span>
+      </TabsTrigger>
+      {showTreeTab && (
+        <TabsTrigger value="tree" className="flex-1 md:flex-none text-xs gap-1.5 data-[state=active]:bg-background">
+          <GitFork className="w-3.5 h-3.5" />
+          版本树
+        </TabsTrigger>
+      )}
+    </>
+  )
+  const hasMultipleViews = hasDiff || showTreeTab
+
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="border-b border-border/50 sticky top-0 z-50 bg-background shrink-0">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+      <header className="border-b border-border/50 z-40 bg-background shrink-0">
+        <div className="max-w-7xl mx-auto px-2 md:px-4 h-12 md:h-16 flex items-center gap-1 md:gap-4">
           {/* Left */}
-          <div className="flex items-center gap-3">
-            <Link 
+          <div className="flex items-center gap-1 md:gap-3 min-w-0 flex-1 md:flex-none">
+            <Link
               to="/"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="返回首页"
+              className="flex items-center gap-2 h-10 px-2 md:px-0 shrink-0 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
+              <div className="hidden md:flex w-8 h-8 rounded-md bg-primary items-center justify-center">
                 <Code2 className="w-4 h-4 text-primary-foreground" />
               </div>
             </Link>
-            
-            <div className="hidden sm:block">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-sm text-muted-foreground">
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <span className="font-mono text-sm text-muted-foreground truncate">
                   #{id?.substring(0, 8)}
                 </span>
-                {isOriginal ? (
-                  <Badge variant="outline" className="text-xs">
-                    原始版本
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-xs">
-                    修改版本
-                  </Badge>
-                )}
+                <Badge variant={isOriginal ? 'outline' : 'secondary'} className="text-[10px] md:text-xs px-1.5 md:px-2.5 shrink-0">
+                  {isOriginal ? '原始版本' : '修改版本'}
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+              <p className="text-[11px] md:text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                 <Clock className="w-3 h-3" />
                 {formatDistanceToNow(snippet.created_at)}
               </p>
             </div>
           </div>
 
-          {/* Center - View Toggle */}
-          <div className="hidden sm:flex items-center gap-2">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-              <TabsList className="bg-secondary/50">
-                {hasDiff && (
-                  <TabsTrigger value="diff" className="text-xs gap-1.5 data-[state=active]:bg-background">
-                    <GitCompare className="w-3.5 h-3.5" />
-                    对比视图
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="edit" className="text-xs gap-1.5 data-[state=active]:bg-background">
-                  <Edit3 className="w-3.5 h-3.5" />
-                  编辑模式
-                </TabsTrigger>
-                {isOwner && replies.length > 0 && (
-                  <TabsTrigger value="tree" className="text-xs gap-1.5 data-[state=active]:bg-background">
-                    <GitFork className="w-3.5 h-3.5" />
-                    版本树
-                  </TabsTrigger>
-                )}
-              </TabsList>
-            </Tabs>
-            
-            {/* 版本对比按钮 */}
-            {treeQuery.data && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setCompareIds({})
-                  setShowVersionCompare(true)
-                }}
-                className="gap-1.5"
-              >
-                <GitCompare className="w-3.5 h-3.5" />
-                版本对比
-              </Button>
+          {/* Center - View Toggle（桌面端） */}
+          <div className="hidden md:flex flex-1 justify-center">
+            {hasMultipleViews && (
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                <TabsList className="bg-secondary/50">{viewTabs}</TabsList>
+              </Tabs>
             )}
           </div>
 
           {/* Right */}
-          <div className="flex items-center gap-2">
-            {/* 语言选择器 */}
+          <div className="flex items-center gap-1 md:gap-2 shrink-0">
             <Select value={language} onValueChange={(v) => setLanguage(v as LanguageValue)}>
-              <SelectTrigger className="w-[100px] sm:w-[130px] h-9 text-xs sm:text-sm bg-secondary/50 border-0">
+              <SelectTrigger
+                aria-label="代码语言"
+                className="w-[104px] md:w-[130px] h-9 text-xs md:text-sm bg-secondary/50 border-0"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -326,48 +274,53 @@ export function SnippetPage() {
               </SelectContent>
             </Select>
 
-            {/* 生成分享图 */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              className="h-9 w-9 sm:w-auto px-0 sm:px-3 hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300"
+              className="hidden md:inline-flex h-9"
               onClick={() => setShowShareImage(true)}
             >
-              <Image className="w-4 h-4 sm:mr-1.5" />
-              <span className="hidden sm:inline">生成分享图</span>
+              <Image className="w-4 h-4 mr-1.5" />
+              生成分享图
             </Button>
 
-            {/* 更多操作 */}
-            {isOwner && isLoggedIn && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9 hover:bg-transparent hover:shadow-md hover:-translate-y-px transition-all duration-300 shrink-0">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setShowPrivateShare(true)}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-9 md:w-9 shrink-0" aria-label="更多操作">
+                  <MoreHorizontal className="w-5 h-5 md:w-4 md:h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[160px]">
+                <DropdownMenuItem className="md:hidden py-2.5" onClick={() => setShowShareImage(true)}>
+                  <Image className="w-4 h-4 mr-2" />
+                  生成分享图
+                </DropdownMenuItem>
+                {treeQuery.data && (
+                  <DropdownMenuItem className="py-2.5 md:py-1.5" onClick={openVersionCompare}>
+                    <GitCompare className="w-4 h-4 mr-2" />
+                    版本对比
+                  </DropdownMenuItem>
+                )}
+                {isOwner && isLoggedIn && (
+                  <DropdownMenuItem className="py-2.5 md:py-1.5" onClick={() => setShowPrivateShare(true)}>
                     <Lock className="w-4 h-4 mr-2" />
                     限制性分享
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            {/* 提交修改按钮 */}
             <Button
               onClick={handleShare}
               disabled={shareMutation.isPending}
-              className="h-9 w-9 sm:w-auto px-0 sm:px-4 hover:bg-primary shadow-sm hover:shadow-md hover:-translate-y-px transition-all duration-300"
+              className="hidden md:inline-flex h-9 px-4 shadow-sm"
             >
               {shareMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                <div className="flex items-center justify-center">
-                  <Share2 className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">提交修改</span>
-                </div>
+                <Send className="w-4 h-4 mr-2" />
               )}
+              提交修改
             </Button>
           </div>
         </div>
@@ -376,29 +329,76 @@ export function SnippetPage() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full overflow-hidden">
         {/* Editor Area */}
-        <div className="flex-1 flex flex-col p-3 sm:p-4 min-h-0">
-          {/* Mobile View Toggle */}
-          <div className="sm:hidden mb-2 shrink-0">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)} className="w-full">
-              <TabsList className="w-full bg-secondary/50">
-                {hasDiff && (
-                  <TabsTrigger value="diff" className="flex-1 text-xs gap-1.5">
-                    <GitCompare className="w-3.5 h-3.5" />
-                    对比
-                  </TabsTrigger>
+        <div className="flex-1 flex flex-col p-2 md:p-4 min-h-0">
+          {/* 修改说明（桌面端；移动端在提交时填写） */}
+          {viewMode !== 'tree' && (
+            <div className="hidden md:flex mb-3 items-center gap-2 p-3 rounded-lg bg-secondary/30 border border-border/50 shrink-0">
+              <MessageSquare className="w-4 h-4 text-muted-foreground shrink-0" />
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="描述你的修改（可选），如：修复了第3行的语法错误"
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+              />
+            </div>
+          )}
+
+          {/* Toolbar */}
+          <div className="flex items-center gap-1 md:gap-2 mb-2 p-1 md:p-1.5 shrink-0 bg-background/50 border rounded-lg">
+            {/* 移动端视图切换 */}
+            <div className="md:hidden flex-1 min-w-0">
+              {hasMultipleViews && (
+                <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                  <TabsList className="w-full h-9 bg-secondary/50">{viewTabs}</TabsList>
+                </Tabs>
+              )}
+            </div>
+
+            {viewMode !== 'tree' && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-pressed={wordWrap === 'on'}
+                  aria-label="自动换行"
+                  className={cn('h-9 md:h-8 px-2.5 text-xs gap-2', wordWrap === 'on' && 'bg-secondary')}
+                  onClick={() => setWordWrap(w => w === 'on' ? 'off' : 'on')}
+                >
+                  <WrapText className="w-4 h-4 md:w-3.5 md:h-3.5" />
+                  <span className="hidden md:inline">自动换行</span>
+                </Button>
+                {hasDiff && viewMode === 'diff' && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <div className="w-px h-4 bg-border/50 mx-1" />
+                    <Button variant="ghost" size="sm" aria-pressed={isSideBySide} className={cn('h-8 px-2.5 text-xs gap-2', isSideBySide && 'bg-secondary')} onClick={() => setIsSideBySide(true)}>
+                      <Columns2 className="w-3.5 h-3.5" />
+                      并排对比
+                    </Button>
+                    <Button variant="ghost" size="sm" aria-pressed={!isSideBySide} className={cn('h-8 px-2.5 text-xs gap-2', !isSideBySide && 'bg-secondary')} onClick={() => setIsSideBySide(false)}>
+                      <Rows2 className="w-3.5 h-3.5" />
+                      内联对比
+                    </Button>
+                  </div>
                 )}
-                <TabsTrigger value="edit" className="flex-1 text-xs gap-1.5">
-                  <Edit3 className="w-3.5 h-3.5" />
-                  编辑
-                </TabsTrigger>
-                {isOwner && replies.length > 0 && (
-                  <TabsTrigger value="tree" className="flex-1 text-xs gap-1.5">
-                    <GitFork className="w-3.5 h-3.5" />
-                    树
-                  </TabsTrigger>
-                )}
-              </TabsList>
-            </Tabs>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyCode(code)}
+                  className="md:ml-auto h-9 md:h-8 px-2.5 text-xs gap-2"
+                  aria-label="复制全部代码"
+                  title="复制全部代码"
+                >
+                  {codeCopied ? (
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                  <span className="hidden md:inline">复制</span>
+                </Button>
+              </>
+            )}
           </div>
 
           {viewMode === 'tree' && isOwner && treeQuery.data ? (
@@ -413,162 +413,117 @@ export function SnippetPage() {
                     setShowVersionCompare(true)
                   }}
                 />
-              </Suspense></div>
+              </Suspense>
+            </div>
           ) : (
-            <>
-              {/* 修改说明输入 */}
-              <div className="mb-2 sm:mb-3 flex gap-2 shrink-0">
-                <div className="flex-1 flex items-center gap-2 p-3 rounded-lg bg-secondary/30 border border-border/50">
-                  <MessageSquare className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="描述你的修改（可选），如：修复了第3行的语法错误"
-                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
-                  />
-                </div>
-              </div>
-                
-
-              
-
-
-
-              
-              {/* Editor Toolbar */}
-              <div className="flex items-center gap-2 mb-2 p-1.5 shrink-0 bg-background/50 border rounded-lg overflow-x-auto">
-                <Button variant="ghost" size="sm" className={`h-8 px-2.5 text-xs gap-2 ${wordWrap === 'on' ? 'bg-secondary' : ''}`} onClick={() => setWordWrap(w => w === 'on' ? 'off' : 'on')}>
-                  <AlignLeft className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">自动换行</span>
-                </Button>
-                {hasDiff && viewMode === 'diff' && (
-                  <>
-                    <div className="w-px h-4 bg-border/50 mx-1" />
-                    <Button variant="ghost" size="sm" className={`h-8 px-2.5 text-xs gap-2 ${isSideBySide ? 'bg-secondary' : ''}`} onClick={() => setIsSideBySide(true)}>
-                      <Columns className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">并排对比</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" className={`h-8 px-2.5 text-xs gap-2 ${!isSideBySide ? 'bg-secondary' : ''}`} onClick={() => setIsSideBySide(false)}>
-                      <Split className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">内联对比</span>
-                    </Button>
-                  </>
-                )}
-                
-                {/* Copy Button Moved to Toolbar (Right Aligned) */}
-                <div className="ml-auto flex items-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCopyCode}
-                    className="h-8 w-8 px-0"
-                    title="复制当前代码"
-                  >
-                    {codeCopied ? (
-                      <Check className="w-4 h-4 text-emerald-500" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-                {/* Editor */}
-              <div className="flex-1 min-h-0 editor-wrapper">
-                {hasDiff && viewMode === 'diff' ? (
-                  <LazyDiffViewer
-                    original={snippet.parent_code!}
-                    modified={code}
-                    language={language}
-                    onModifiedChange={setCode}
-                    wordWrap={wordWrap}
-                    renderSideBySide={isSideBySide}
-                  />
-                ) : (
-                  <LazyCodeEditor
-                    value={code}
-                    onChange={setCode}
-                    language={language}
-                    wordWrap={wordWrap}
-                  />
-                )}
-              </div>
-            </>
+            <div className="flex-1 min-h-0 editor-wrapper">
+              {hasDiff && viewMode === 'diff' ? (
+                <LazyDiffViewer
+                  original={snippet.parent_code!}
+                  modified={code}
+                  language={language}
+                  onModifiedChange={setCode}
+                  wordWrap={wordWrap}
+                  renderSideBySide={isSideBySide}
+                />
+              ) : (
+                <LazyCodeEditor
+                  value={code}
+                  onChange={setCode}
+                  language={language}
+                  wordWrap={wordWrap}
+                />
+              )}
+            </div>
           )}
         </div>
 
-        {/* Replies Panel - 只有原始作者才能看到 */}
-        {isOwner && isOriginal && replies.length > 0 && viewMode !== 'tree' && (
-          <div className="lg:w-80 border-t lg:border-t-0 lg:border-l border-border/50 bg-muted/30 shrink-0 max-h-64 lg:max-h-none overflow-y-auto">
-            <div className="p-3 sm:p-4">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <h3 className="font-medium text-sm">收到的修改</h3>
-                    <p className="text-xs text-muted-foreground">{replies.length} 个回复</p>
-                  </div>
+        {/* Replies Panel - 只有原始作者才能看到；移动端改为底部抽屉 */}
+        {showReplies && viewMode !== 'tree' && (
+          <div className="hidden md:block lg:w-80 border-t lg:border-t-0 lg:border-l border-border/50 bg-muted/30 shrink-0 max-h-64 lg:max-h-none overflow-y-auto">
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <h3 className="font-medium text-sm">收到的修改</h3>
+                  <p className="text-xs text-muted-foreground">{replies.length} 个回复</p>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                {replies.map((reply) => (
-                  <ReplyCard
-                    key={reply.id}
-                    reply={reply}
-                    onClick={() => navigate(`/${reply.id}`)}
-                  />
-                ))}
-              </div>
+              <ReplyList replies={replies} onSelect={(replyId) => navigate(`/${replyId}`)} />
             </div>
           </div>
         )}
       </main>
 
+      {/* 移动端底部操作栏：编辑代码（软键盘弹出）时隐藏 */}
+      {!editorFocused && (
+        <div className="md:hidden shrink-0 border-t border-border/50 bg-background px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex gap-2">
+          {showReplies && (
+            <Button variant="outline" className="h-11 gap-2" onClick={() => setRepliesDrawerOpen(true)}>
+              <Users className="w-4 h-4" />
+              收到的修改
+              <Badge variant="secondary" className="px-1.5">{replies.length}</Badge>
+            </Button>
+          )}
+          <Button className="h-11 flex-1 gap-2" onClick={() => setSubmitDrawerOpen(true)}>
+            <Send className="w-4 h-4" />
+            提交修改
+          </Button>
+        </div>
+      )}
+
+      {/* 移动端：填写修改说明并提交 */}
+      <ResponsiveDialog
+        open={submitDrawerOpen}
+        onOpenChange={setSubmitDrawerOpen}
+        title={<><Send className="w-5 h-5" />提交修改</>}
+        description="提交后会生成新的版本链接，发给提问者即可查看你的修改"
+        className="space-y-4"
+      >
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={3}
+          placeholder="描述你的修改（可选），如：修复了第3行的语法错误"
+          className="w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-base outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder:text-muted-foreground/60"
+        />
+        <Button className="h-11 w-full" onClick={handleShare} disabled={shareMutation.isPending}>
+          {shareMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+          提交
+        </Button>
+      </ResponsiveDialog>
+
+      {/* 移动端：收到的修改 */}
+      {showReplies && (
+        <ResponsiveDialog
+          open={repliesDrawerOpen}
+          onOpenChange={setRepliesDrawerOpen}
+          title={<><Users className="w-5 h-5" />收到的修改</>}
+          description={`${replies.length} 个回复`}
+        >
+          <ReplyList
+            replies={replies}
+            onSelect={(replyId) => {
+              setRepliesDrawerOpen(false)
+              navigate(`/${replyId}`)
+            }}
+          />
+        </ResponsiveDialog>
+      )}
+
       {/* Share Dialog */}
-      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Check className="w-5 h-5" />
-              修改已保存
-            </DialogTitle>
-            <DialogDescription>
-              分享此链接给提问者，让他查看你的修改建议
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <div 
-                className="flex-1 flex items-center bg-muted/50 rounded-lg px-3 py-2 border border-border cursor-pointer hover:bg-muted/70 transition-colors"
-                onClick={handleCopy}
-                title="点击复制"
-              >
-                <span className="flex-1 text-sm font-mono truncate select-none">
-                  {shareUrl}
-                </span>
-              </div>
-              <Button variant="outline" size="icon" onClick={handleCopy}>
-                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => setShareDialogOpen(false)}>
-                继续编辑
-              </Button>
-              <Button className="flex-1" onClick={() => {
-                setShareDialogOpen(false)
-                setTimeout(() => navigate(`/${savedId}`), 100)
-              }}>
-                查看修改
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ShareLinkDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        url={shareUrl}
+        title="修改已保存"
+        description="分享此链接给提问者，让对方查看你的修改建议"
+        viewLabel="查看修改"
+        onView={() => {
+          setShareDialogOpen(false)
+          setTimeout(() => navigate(`/${savedId}`), 100)
+        }}
+      />
 
       {/* Code Share Image Dialog */}
       <Suspense fallback={null}>
@@ -583,10 +538,10 @@ export function SnippetPage() {
       </Suspense>
 
       {/* Private Share Dialog */}
-      <PrivateShareDialog
-        snippetId={id!}
-        isOpen={showPrivateShare}
-        onClose={() => setShowPrivateShare(false)}
+      <RestrictedShareDialog
+        open={showPrivateShare}
+        onOpenChange={setShowPrivateShare}
+        getSnippetId={async () => id!}
       />
 
       {/* Version Compare Dialog */}
@@ -610,6 +565,16 @@ export function SnippetPage() {
   )
 }
 
+function ReplyList({ replies, onSelect }: { replies: SnippetListItem[]; onSelect: (id: string) => void }) {
+  return (
+    <div className="space-y-2">
+      {replies.map((reply) => (
+        <ReplyCard key={reply.id} reply={reply} onClick={() => onSelect(reply.id)} />
+      ))}
+    </div>
+  )
+}
+
 // 回复卡片组件
 function ReplyCard({ reply, onClick }: { reply: SnippetListItem; onClick: () => void }) {
   return (
@@ -625,7 +590,7 @@ function ReplyCard({ reply, onClick }: { reply: SnippetListItem; onClick: () => 
           {formatDistanceToNow(reply.created_at)}
         </span>
       </div>
-      
+
       {reply.message ? (
         <p className="text-sm line-clamp-2 group-hover:text-primary transition-colors">
           {reply.message}
@@ -636,157 +601,10 @@ function ReplyCard({ reply, onClick }: { reply: SnippetListItem; onClick: () => 
         </p>
       )}
 
-      <div className="flex items-center gap-1 mt-2 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 mt-2 text-xs text-primary md:opacity-0 md:group-hover:opacity-100 transition-opacity">
         查看修改
         <ChevronRight className="w-3 h-3" />
       </div>
     </button>
-  )
-}
-
-// 私密分享对话框
-function PrivateShareDialog({ 
-  snippetId, 
-  isOpen, 
-  onClose 
-}: { 
-  snippetId: string
-  isOpen: boolean
-  onClose: () => void 
-}) {
-  const [password, setPassword] = useState('')
-  const [expiresDays, setExpiresDays] = useState('7')
-  const [isCreating, setIsCreating] = useState(false)
-  const [shareResult, setShareResult] = useState<{ share_token: string; share_url: string } | null>(null)
-  const [copied, setCopied] = useState(false)
-
-  const handleCreate = async () => {
-    setIsCreating(true)
-    try {
-      const result = await api.createShare({
-        snippet_id: snippetId,
-        password: password || undefined,
-        expires_days: expiresDays !== 'never' ? parseInt(expiresDays) : undefined,
-      })
-      setShareResult(result)
-      toast.success('私密分享链接已创建')
-    } catch (error: any) {
-      toast.error(error.message || '创建失败')
-    } finally {
-      setIsCreating(false)
-    }
-  }
-
-  const handleCopy = async () => {
-    if (!shareResult) return
-    try {
-      const fullUrl = `${window.location.origin}${shareResult.share_url}`
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(fullUrl)
-      } else {
-        const textArea = document.createElement('textarea')
-        textArea.value = fullUrl
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-9999px'
-        document.body.appendChild(textArea)
-        textArea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textArea)
-      }
-      setCopied(true)
-      toast.success('链接已复制')
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      toast.error('复制失败')
-    }
-  }
-
-  const handleClose = () => {
-    setPassword('')
-    setExpiresDays('7')
-    setShareResult(null)
-    onClose()
-  }
-
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Lock className="w-5 h-5" />
-            创建限制性分享
-          </DialogTitle>
-          <DialogDescription>
-            创建独立链接，可设置密码保护和过期时间
-          </DialogDescription>
-        </DialogHeader>
-
-        {shareResult ? (
-          <div className="space-y-4">
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-900/20">
-              <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                链接已创建！{password ? ' 🔒 受密码保护' : ''}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <div 
-                className="flex-1 flex items-center bg-muted/50 rounded-lg px-3 py-2 border border-border cursor-pointer hover:bg-muted/70 transition-colors"
-                onClick={handleCopy}
-                title="点击复制"
-              >
-                <span className="flex-1 text-sm font-mono truncate select-none">
-                  {`${window.location.origin}${shareResult.share_url}`}
-                </span>
-              </div>
-              <Button variant="outline" size="icon" onClick={handleCopy}>
-                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
-            <Button className="w-full" onClick={handleClose}>
-              完成
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>访问密码（可选）</Label>
-              <Input
-                type="password"
-                placeholder="留空则无需密码"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                设置密码后，访问者需要输入密码才能查看代码
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>过期时间</Label>
-              <Select value={expiresDays} onValueChange={setExpiresDays}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1天后过期</SelectItem>
-                  <SelectItem value="7">7天后过期</SelectItem>
-                  <SelectItem value="30">30天后过期</SelectItem>
-                  <SelectItem value="never">永不过期</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={handleClose}>
-                取消
-              </Button>
-              <Button className="flex-1" onClick={handleCreate} disabled={isCreating}>
-                {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : '创建链接'}
-              </Button>
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
   )
 }

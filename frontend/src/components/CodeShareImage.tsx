@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react'
-import { Download, Palette, X, Check, Loader2, Eye, QrCode, Link as LinkIcon } from 'lucide-react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { Download, Share2, Palette, X, Check, Loader2, Eye, QrCode, Link as LinkIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { toPng } from 'html-to-image'
+import { toBlob } from 'html-to-image'
 import { toast } from 'sonner'
 import { QRCodeSVG } from 'qrcode.react'
 
@@ -170,6 +170,31 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
   const [showQR, setShowQR] = useState(true)
   const [showLink, setShowLink] = useState(true)
   const [customMessage, setCustomMessage] = useState(message || '代码片段')
+  // 预览区宽度不够时（手机）整体缩放卡片；导出图片仍按原始尺寸生成
+  const previewRef = useRef<HTMLDivElement>(null)
+  const [preview, setPreview] = useState({ scale: 1, width: 0, height: 0 })
+  const canShareFile = typeof navigator !== 'undefined' && 'share' in navigator && window.matchMedia('(pointer: coarse)').matches
+
+  useLayoutEffect(() => {
+    const container = previewRef.current
+    const card = cardRef.current
+    if (!isOpen || !container || !card) return
+
+    const update = () => {
+      const style = getComputedStyle(container)
+      const available = container.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+      setPreview({
+        scale: Math.min(1, available / card.offsetWidth),
+        width: card.offsetWidth,
+        height: card.offsetHeight,
+      })
+    }
+    const observer = new ResizeObserver(update)
+    observer.observe(container)
+    observer.observe(card)
+    update()
+    return () => observer.disconnect()
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -185,19 +210,32 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
     setIsGenerating(true)
     try {
       // html-to-image supports modern css like oklch natively through browser rendering
-      const dataUrl = await toPng(cardRef.current, {
+      const blob = await toBlob(cardRef.current, {
         quality: 1,
         pixelRatio: 2,
         skipFonts: false,
       })
-      
+      if (!blob) throw new Error('empty image')
+
+      const fileName = `codediff-${Date.now()}.png`
+      const file = new File([blob], fileName, { type: 'image/png' })
+
+      // 手机上优先调起系统分享面板，可直接保存到相册或发给好友
+      if (canShareFile && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] })
+        return
+      }
+
+      const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.download = `codediff-${Date.now()}.png`
-      link.href = dataUrl
+      link.download = fileName
+      link.href = url
       link.click()
-      
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+
       toast.success('图片已下载')
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
       toast.error('生成图片失败')
       console.error(error)
     } finally {
@@ -216,21 +254,22 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
   const logoText = selectedTheme.isDark ? '#fff' : '#000'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm md:p-4">
+      <div className="relative flex h-dvh md:h-auto md:max-h-[90dvh] w-full max-w-4xl flex-col md:rounded-2xl bg-white shadow-2xl dark:bg-gray-900 overflow-hidden">
         {/* 头部 */}
-        <div className="flex items-center justify-between border-b px-6 py-4 shrink-0">
+        <div className="flex items-center justify-between border-b px-4 py-2 md:px-6 md:py-4 shrink-0">
           <h2 className="text-lg font-semibold">生成分享图</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+            aria-label="关闭"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* 主题选择和选项 */}
-        <div className="border-b px-6 py-3 shrink-0">
+        <div className="border-b px-4 py-2 md:px-6 md:py-3 shrink-0">
           <div className="flex items-center gap-2 overflow-x-auto py-2 scrollbar-thin">
             <Palette className="h-4 w-4 shrink-0 text-gray-400" />
             {THEMES.map((theme) => (
@@ -257,7 +296,7 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
           
           {/* 显示选项 */}
           <div className="flex flex-col gap-3 mt-3 pt-3 border-t">
-            <div className="flex flex-wrap items-center gap-6">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="showHeader" 
@@ -327,8 +366,12 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
         </div>
 
         {/* 预览区域 */}
-        <div className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-8 dark:bg-gray-950">
-          <div className="w-max mx-auto pb-4">
+        <div ref={previewRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 md:p-8 dark:bg-gray-950">
+          <div
+            className="mx-auto"
+            style={preview.width ? { width: preview.width * preview.scale, height: preview.height * preview.scale } : undefined}
+          >
+          <div className="w-max origin-top-left" style={{ transform: `scale(${preview.scale})` }}>
             {/* 分享卡片 */}
             <div
               ref={cardRef}
@@ -415,20 +458,23 @@ export function CodeShareImage({ code, language, message, currentUrl, isOpen, on
               )}
             </div>
           </div>
+          </div>
         </div>
 
         {/* 底部按钮 */}
-        <div className="flex items-center justify-end gap-3 border-t px-6 py-4 shrink-0">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex items-center justify-end gap-3 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6 md:py-4 shrink-0">
+          <Button variant="outline" className="h-11 flex-1 md:h-9 md:flex-none" onClick={onClose}>
             取消
           </Button>
-          <Button onClick={handleDownload} disabled={isGenerating}>
+          <Button className="h-11 flex-1 md:h-9 md:flex-none" onClick={handleDownload} disabled={isGenerating}>
             {isGenerating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : canShareFile ? (
+              <Share2 className="mr-2 h-4 w-4" />
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            下载图片
+            {canShareFile ? '保存 / 分享图片' : '下载图片'}
           </Button>
         </div>
       </div>

@@ -72,7 +72,7 @@ export function UserMenu() {
               variant="outline" 
               size="sm" 
               onClick={openLogin}
-              className="h-8 px-2 sm:px-3 text-xs font-medium"
+              className="h-9 md:h-8 px-3 text-xs font-medium"
             >
               登录
             </Button>
@@ -81,7 +81,8 @@ export function UserMenu() {
             <Button 
               size="sm" 
               onClick={openRegister}
-              className="h-8 px-2 sm:px-3 text-xs font-medium"
+              // 移动端空间有限，只保留"登录"，注册入口在登录弹窗里
+              className="hidden md:inline-flex h-8 px-3 text-xs font-medium"
             >
               注册
             </Button>

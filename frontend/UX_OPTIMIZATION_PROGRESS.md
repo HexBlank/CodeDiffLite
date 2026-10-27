@@ -15,9 +15,9 @@
 - [ ] 增加加载骨架屏过渡 (Skeleton Loader)
 
 ## 移动端响应式与适配 (Mobile & Responsive UX)
-- [ ] 底部悬浮操作区 (Floating Action Bar) 替代页面顶部拥挤的操作按钮
-- [ ] 抽屉式弹窗 (Bottom Drawer) 替代手机端难用的传统下拉选单
-- [ ] Diff 视图在小屏幕下的优雅降级 (默认 Inline，防横向滚动溢出)
+- [x] 底部悬浮操作区 (Floating Action Bar) 替代页面顶部拥挤的操作按钮
+- [x] 抽屉式弹窗 (Bottom Drawer) 替代手机端难用的传统下拉选单
+- [x] Diff 视图在小屏幕下的优雅降级 (默认 Inline，防横向滚动溢出)
 
 
 - [x] 修复：合并了重复的工具栏，并将长按复制按钮移动至了对应的编辑器工具栏右侧

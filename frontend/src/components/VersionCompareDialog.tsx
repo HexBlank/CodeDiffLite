@@ -124,25 +124,26 @@ export function VersionCompareDialog({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      {/* 对比结果需要固定高度，编辑器才能在内部滚动 */}
-      <div className={`relative flex w-full max-w-6xl flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 overflow-hidden ${activeTab === 'result' ? 'h-[90dvh]' : 'max-h-[90dvh]'}`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm md:p-4">
+      {/* 移动端全屏；对比结果需要固定高度，编辑器才能在内部滚动 */}
+      <div className={`relative flex h-dvh w-full max-w-6xl flex-col bg-white shadow-2xl dark:bg-gray-900 overflow-hidden md:rounded-2xl ${activeTab === 'result' ? 'md:h-[90dvh]' : 'md:h-auto md:max-h-[90dvh]'}`}>
         {/* 头部 */}
-        <div className="flex items-center justify-between border-b px-6 py-4">
+        <div className="flex items-center justify-between border-b px-4 py-2 md:px-6 md:py-4">
           <div className="flex items-center gap-3">
             <GitCompare className="h-5 w-5 text-indigo-500" />
             <h2 className="text-lg font-semibold">版本对比</h2>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+            aria-label="关闭"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'select' | 'result')} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-6 mt-4 w-auto justify-start">
+          <TabsList className="mx-4 mt-3 w-auto justify-start md:mx-6 md:mt-4">
             <TabsTrigger value="select">选择版本</TabsTrigger>
             <TabsTrigger value="result" disabled={!compareResult}>
               对比结果
@@ -150,10 +151,10 @@ export function VersionCompareDialog({
           </TabsList>
 
           {/* 选择版本 */}
-          <TabsContent value="select" className="flex-1 overflow-hidden m-0">
-            <div className="flex h-full">
+          <TabsContent value="select" className="flex-1 min-h-0 overflow-hidden m-0 flex flex-col data-[state=inactive]:hidden">
+            <div className="flex flex-1 min-h-0 flex-col md:flex-row">
               {/* 左侧：选择基础版本 */}
-              <div className="flex-1 border-r p-4 overflow-y-auto">
+              <div className="flex-1 min-h-0 border-b p-4 overflow-y-auto md:border-b-0 md:border-r">
                 <h3 className="mb-3 text-sm font-medium text-gray-500">基础版本</h3>
                 <div className="space-y-2">
                   {allVersions.map((version) => (
@@ -192,7 +193,7 @@ export function VersionCompareDialog({
               </div>
 
               {/* 中间：操作按钮 */}
-              <div className="flex flex-col items-center justify-center gap-4 px-4">
+              <div className="hidden md:flex flex-col items-center justify-center gap-4 px-4">
                 <Button
                   variant="outline"
                   size="icon"
@@ -205,7 +206,7 @@ export function VersionCompareDialog({
               </div>
 
               {/* 右侧：选择对比版本 */}
-              <div className="flex-1 p-4 overflow-y-auto">
+              <div className="flex-1 min-h-0 p-4 overflow-y-auto">
                 <h3 className="mb-3 text-sm font-medium text-gray-500">对比版本</h3>
                 <div className="space-y-2">
                   {allVersions.map((version) => (
@@ -245,15 +246,15 @@ export function VersionCompareDialog({
             </div>
 
             {/* 底部操作栏 */}
-            <div className="border-t px-6 py-4">
+            <div className="border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6 md:py-4">
               {error && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 truncate text-sm text-gray-500">
                   {baseId && compareId ? (
                     <span>
                       已选择：<span className="font-medium">{allVersions.find(v => v.id === baseId)?.message || '无标题'}</span>
@@ -265,6 +266,7 @@ export function VersionCompareDialog({
                   )}
                 </div>
                 <Button
+                  className="shrink-0"
                   onClick={() => handleCompare()}
                   disabled={!baseId || !compareId || isLoading}
                 >
@@ -280,12 +282,12 @@ export function VersionCompareDialog({
           </TabsContent>
 
           {/* 对比结果 */}
-          <TabsContent value="result" className="flex-1 overflow-hidden m-0 flex flex-col">
+          <TabsContent value="result" className="flex-1 min-h-0 overflow-hidden m-0 flex flex-col data-[state=inactive]:hidden">
             {compareResult && (
               <>
                 {/* 信息栏 */}
-                <div className="border-b px-6 py-3 flex items-center justify-between bg-gray-50 dark:bg-gray-800/50">
-                  <div className="flex items-center gap-4 text-sm">
+                <div className="border-b px-4 py-2 md:px-6 md:py-3 flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800/50">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                     <span className="text-gray-500">
                       基础：<span className="font-medium text-gray-900 dark:text-gray-100">{compareResult.base.message || '无标题'}</span>
                     </span>
@@ -294,13 +296,13 @@ export function VersionCompareDialog({
                       对比：<span className="font-medium text-gray-900 dark:text-gray-100">{compareResult.compare.message || '无标题'}</span>
                     </span>
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleSwap}>
+                  <Button variant="outline" size="sm" className="shrink-0" onClick={handleSwap}>
                     交换方向
                   </Button>
                 </div>
 
                 {/* Diff 视图 */}
-                <div className="flex-1 min-h-0 p-4 overflow-hidden">
+                <div className="flex-1 min-h-0 p-2 md:p-4 overflow-hidden">
                   <LazyDiffViewer
                     original={compareResult.original}
                     modified={compareResult.modified}
@@ -309,7 +311,7 @@ export function VersionCompareDialog({
                 </div>
 
                 {/* 底部栏 */}
-                <div className="border-t px-6 py-3 flex items-center justify-between">
+                <div className="border-t px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:px-6 md:py-3 flex items-center justify-between gap-3">
                   {!compareResult.is_same_root && (
                     <Alert className="m-0 py-2">
                       <AlertCircle className="h-4 w-4" />
