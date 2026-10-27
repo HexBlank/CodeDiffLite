@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, lazy, Suspense } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -18,6 +18,11 @@ import { api, LANGUAGES, type LanguageValue } from "@/lib/api";
 import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditorFocused } from "@/hooks/use-editor-focus";
+import { useIsTouch } from "@/hooks/use-mobile";
+
+const EditorKeyboardBar = lazy(() =>
+  import("@/components/editor/EditorKeyboardBar").then((m) => ({ default: m.EditorKeyboardBar }))
+);
 
 const DEFAULT_CODE = `// 👋 欢迎使用 CodeDiff
 
@@ -33,6 +38,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
   const editorFocused = useEditorFocused();
+  const isTouch = useIsTouch();
 
   const [code, setCode] = useState(DEFAULT_CODE);
   const [language, setLanguage] = useState<LanguageValue>("javascript");
@@ -100,7 +106,7 @@ export function HomePage() {
   );
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
+    <div className="h-[var(--app-height,100dvh)] flex flex-col overflow-hidden">
       {/* Header */}
       <header className="glass border-b border-border/50 z-40 shrink-0 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-3 md:px-4 h-12 md:h-16 flex items-center justify-between gap-2">
@@ -168,6 +174,13 @@ export function HomePage() {
           />
         </div>
       </main>
+
+      {/* 触摸设备编辑代码时：软键盘上方显示辅助按键栏 */}
+      {isTouch && editorFocused && (
+        <Suspense fallback={null}>
+          <EditorKeyboardBar />
+        </Suspense>
+      )}
 
       {/* 移动端底部操作栏：编辑代码（软键盘弹出）时隐藏 */}
       {!editorFocused && (

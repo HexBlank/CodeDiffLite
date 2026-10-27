@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Compartment, EditorState, type Extension } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import {
@@ -11,6 +11,7 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import {
   baseExtensions,
+  focusAtVisibleTop,
   languageIndent,
   loadLanguage,
   readOnlyExtensions,
@@ -22,6 +23,8 @@ interface DiffViewerProps {
   modified: string
   language: string
   onModifiedChange?: (value: string) => void
+  /** 暂时禁止编辑（移动端默认只读，点"修改"后才可编辑） */
+  readOnly?: boolean
   className?: string
   wordWrap?: 'on' | 'off'
   renderSideBySide?: boolean
@@ -35,6 +38,7 @@ export function DiffViewer({
   modified,
   language,
   onModifiedChange,
+  readOnly = false,
   className = '',
   wordWrap = 'on',
   renderSideBySide,
@@ -49,14 +53,15 @@ export function DiffViewer({
   const compartments = useRef({
     language: new Compartment(),
     wordWrap: new Compartment(),
+    readOnly: new Compartment(),
   }).current
 
-  const editable = !!onModifiedChange
+  const editable = !!onModifiedChange && !readOnly
   // 移动端默认使用内联视图
   const sideBySide =
     renderSideBySide ?? (typeof window !== 'undefined' && window.innerWidth >= 768)
 
-  // 原始代码、视图模式或可编辑性变化时重建编辑器
+  // 原始代码或视图模式变化时重建编辑器
   useEffect(() => {
     const parent = containerRef.current!
 
@@ -68,7 +73,7 @@ export function DiffViewer({
 
     const modifiedExtensions: Extension[] = [
       shared(),
-      readOnlyExtensions(!editable),
+      compartments.readOnly.of(readOnlyExtensions(!editable)),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           onChangeRef.current?.(update.state.doc.toString())
@@ -115,7 +120,7 @@ export function DiffViewer({
       viewsRef.current = []
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [original, sideBySide, editable])
+  }, [original, sideBySide])
 
   // 外部传入的 modified 变化时同步
   useEffect(() => {
@@ -140,7 +145,19 @@ export function DiffViewer({
     return () => {
       cancelled = true
     }
-  }, [language, original, sideBySide, editable, compartments])
+  }, [language, original, sideBySide, compartments])
+
+  // 同步切换：从只读变为可编辑时立即聚焦，以便在同一次点击里弹出键盘
+  const wasEditable = useRef(editable)
+  useLayoutEffect(() => {
+    const view = viewsRef.current[viewsRef.current.length - 1]
+    if (!view) return
+    view.dispatch({ effects: compartments.readOnly.reconfigure(readOnlyExtensions(!editable)) })
+    if (!wasEditable.current && editable) {
+      focusAtVisibleTop(view)
+    }
+    wasEditable.current = editable
+  }, [editable, compartments])
 
   useEffect(() => {
     for (const view of viewsRef.current) {

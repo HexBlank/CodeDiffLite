@@ -168,6 +168,15 @@
   }
 }
 
+/* 横向滑动的按键栏不显示滚动条 */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* 现代滚动条 - 机械风格 */
 ::-webkit-scrollbar {
   width: 8px;

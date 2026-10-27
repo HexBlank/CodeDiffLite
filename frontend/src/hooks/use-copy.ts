@@ -3,19 +3,28 @@ import { toast } from 'sonner'
 
 export async function copyText(text: string) {
   if (navigator.clipboard && window.isSecureContext) {
-    await navigator.clipboard.writeText(text)
-    return
+    try {
+      await navigator.clipboard.writeText(text)
+      return
+    } catch {
+      // 部分浏览器（如某些 WebView）拒绝剪贴板 API，退回到旧方案
+    }
   }
 
-  // 非 HTTPS 环境下的兜底方案
+  // 非 HTTPS 环境或剪贴板 API 不可用时的兜底方案
+  const previousFocus = document.activeElement as HTMLElement | null
   const textArea = document.createElement('textarea')
   textArea.value = text
+  textArea.setAttribute('readonly', '')
   textArea.style.position = 'fixed'
   textArea.style.left = '-9999px'
   document.body.appendChild(textArea)
   textArea.select()
-  document.execCommand('copy')
+  const ok = document.execCommand('copy')
   document.body.removeChild(textArea)
+  // 还原焦点，避免编辑时复制后软键盘被收起
+  previousFocus?.focus({ preventScroll: true })
+  if (!ok) throw new Error('copy failed')
 }
 
 /** 复制文本并在 2 秒内保持 copied 状态，用于切换按钮图标 */

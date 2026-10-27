@@ -7,6 +7,9 @@ import '@fontsource-variable/albert-sans'
 import '@fontsource-variable/bricolage-grotesque'
 import '@fontsource-variable/fira-code'
 import './index.css'
+import { installViewportHeight } from './lib/viewport'
+
+installViewportHeight()
 
 // iOS Safari 在聚焦字号小于 16px 的输入框时会自动放大页面。
 // 只在 iOS 上加 maximum-scale=1：iOS 仍允许双指缩放，而 Android 不受影响。

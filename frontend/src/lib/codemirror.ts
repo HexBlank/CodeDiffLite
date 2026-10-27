@@ -187,6 +187,20 @@ export function baseExtensions(): Extension[] {
   ]
 }
 
+/** 把光标放到当前可见区域的第一行并聚焦，避免聚焦时跳回文件开头 */
+export function focusAtVisibleTop(view: EditorView) {
+  // 对比视图的滚动容器在编辑器外层，用外层容器的可见区域来定位
+  const container = view.dom.closest('.diff-viewer, .code-editor') ?? view.dom
+  const top = Math.max(container.getBoundingClientRect().top, 0)
+  // 只看真实渲染的代码行，跳过"N 行未改动"折叠块和内联对比里的删除块
+  const lines = view.contentDOM.querySelectorAll<HTMLElement>(':scope > .cm-line')
+  const firstVisible = Array.from(lines).find((line) => line.getBoundingClientRect().bottom > top)
+  if (firstVisible) {
+    view.dispatch({ selection: { anchor: view.posAtDOM(firstVisible, 0) } })
+  }
+  view.focus()
+}
+
 export function readOnlyExtensions(readOnly: boolean): Extension {
   return readOnly ? [EditorState.readOnly.of(true), EditorView.editable.of(false)] : []
 }

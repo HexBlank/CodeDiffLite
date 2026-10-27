@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import {
   baseExtensions,
+  focusAtVisibleTop,
   languageIndent,
   loadLanguage,
   readOnlyExtensions,
@@ -89,10 +90,19 @@ export function CodeEditor({
     }
   }, [language, compartments])
 
-  useEffect(() => {
-    viewRef.current?.dispatch({
+  // 用 layout effect 同步切换：从只读变为可编辑时立即聚焦，
+  // 这样点击"修改"能在同一次手势里弹出键盘（iOS 要求）
+  const wasReadOnly = useRef(readOnly)
+  useLayoutEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    view.dispatch({
       effects: compartments.readOnly.reconfigure(readOnlyExtensions(readOnly)),
     })
+    if (wasReadOnly.current && !readOnly) {
+      focusAtVisibleTop(view)
+    }
+    wasReadOnly.current = readOnly
   }, [readOnly, compartments])
 
   useEffect(() => {

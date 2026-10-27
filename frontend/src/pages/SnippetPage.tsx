@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
+import { flushSync } from 'react-dom'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -23,6 +24,7 @@ import {
   WrapText,
   Columns2,
   Rows2,
+  Pencil,
 } from 'lucide-react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { LazyCodeEditor, LazyDiffViewer } from '@/components/editor/LazyEditor'
@@ -48,11 +50,13 @@ import { api, LANGUAGES, type LanguageValue, type SnippetListItem } from '@/lib/
 import { useAuth } from '@/contexts/AuthContext'
 import { useCopy } from '@/hooks/use-copy'
 import { useEditorFocused } from '@/hooks/use-editor-focus'
+import { useIsTouch } from '@/hooks/use-mobile'
 import { formatDistanceToNow } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
 const VersionTreeVisualizer = lazy(() => import('@/components/VersionTreeVisualizer').then(m => ({ default: m.VersionTreeVisualizer })))
 const CodeShareImage = lazy(() => import('@/components/CodeShareImage').then(m => ({ default: m.CodeShareImage })))
+const EditorKeyboardBar = lazy(() => import('@/components/editor/EditorKeyboardBar').then(m => ({ default: m.EditorKeyboardBar })))
 const VersionCompareDialog = lazy(() => import('@/components/VersionCompareDialog').then(m => ({ default: m.VersionCompareDialog })))
 
 type ViewMode = 'diff' | 'edit' | 'tree'
@@ -63,6 +67,7 @@ export function SnippetPage() {
   const queryClient = useQueryClient()
   const { isLoggedIn } = useAuth()
   const editorFocused = useEditorFocused()
+  const isTouch = useIsTouch()
   const { copied: codeCopied, copy: copyCode } = useCopy('代码已复制')
 
   // 状态
@@ -80,6 +85,9 @@ export function SnippetPage() {
   const [compareIds, setCompareIds] = useState<{base?: string, compare?: string}>({})
   const [wordWrap, setWordWrap] = useState<'on' | 'off'>('on')
   const [isSideBySide, setIsSideBySide] = useState<boolean>(typeof window !== 'undefined' && window.innerWidth >= 768)
+  // 触摸设备默认只读：滑动浏览、长按选择复制都不会弹出键盘，点"修改"后才可编辑
+  const [editing, setEditing] = useState(false)
+  const editorReadOnly = isTouch && !editing
 
   // 获取当前 snippet
   const snippetQuery = useQuery({
@@ -109,6 +117,7 @@ export function SnippetPage() {
       setCode(snippet.code)
       setLanguage(snippet.language as LanguageValue)
       setViewMode(hasDiff ? 'diff' : 'edit')
+      setEditing(false)
     }
   }, [snippet, hasDiff])
 
@@ -154,6 +163,16 @@ export function SnippetPage() {
   }, { enableOnFormTags: true, enableOnContentEditable: true })
 
   const shareUrl = savedId ? `${window.location.origin}/${savedId}` : ''
+
+  const startEditing = () => {
+    // 同步渲染，让编辑器在这次点击里就变为可编辑并聚焦，iOS 才会弹出键盘
+    flushSync(() => setEditing(true))
+  }
+
+  const finishEditing = () => {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    setEditing(false)
+  }
 
   const openVersionCompare = () => {
     setCompareIds({})
@@ -201,7 +220,8 @@ export function SnippetPage() {
       )}
       <TabsTrigger value="edit" className="flex-1 md:flex-none text-xs gap-1.5 data-[state=active]:bg-background">
         <Edit3 className="w-3.5 h-3.5" />
-        编辑<span className="hidden md:inline">模式</span>
+        <span className="md:hidden">代码</span>
+        <span className="hidden md:inline">编辑模式</span>
       </TabsTrigger>
       {showTreeTab && (
         <TabsTrigger value="tree" className="flex-1 md:flex-none text-xs gap-1.5 data-[state=active]:bg-background">
@@ -214,7 +234,7 @@ export function SnippetPage() {
   const hasMultipleViews = hasDiff || showTreeTab
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
+    <div className="h-[var(--app-height,100dvh)] flex flex-col overflow-hidden">
       {/* Header */}
       <header className="border-b border-border/50 z-40 bg-background shrink-0">
         <div className="max-w-7xl mx-auto px-2 md:px-4 h-12 md:h-16 flex items-center gap-1 md:gap-4">
@@ -357,6 +377,19 @@ export function SnippetPage() {
 
             {viewMode !== 'tree' && (
               <>
+                {isTouch && (
+                  editing ? (
+                    <Button size="sm" className="h-9 px-3 text-xs gap-1.5" onClick={finishEditing}>
+                      <Check className="w-4 h-4" />
+                      完成
+                    </Button>
+                  ) : (
+                    <Button variant="secondary" size="sm" className="h-9 px-3 text-xs gap-1.5" onClick={startEditing}>
+                      <Pencil className="w-4 h-4" />
+                      修改
+                    </Button>
+                  )
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -423,6 +456,7 @@ export function SnippetPage() {
                   modified={code}
                   language={language}
                   onModifiedChange={setCode}
+                  readOnly={editorReadOnly}
                   wordWrap={wordWrap}
                   renderSideBySide={isSideBySide}
                 />
@@ -431,6 +465,7 @@ export function SnippetPage() {
                   value={code}
                   onChange={setCode}
                   language={language}
+                  readOnly={editorReadOnly}
                   wordWrap={wordWrap}
                 />
               )}
@@ -454,6 +489,13 @@ export function SnippetPage() {
           </div>
         )}
       </main>
+
+      {/* 触摸设备编辑代码时：软键盘上方显示辅助按键栏 */}
+      {isTouch && editorFocused && (
+        <Suspense fallback={null}>
+          <EditorKeyboardBar />
+        </Suspense>
+      )}
 
       {/* 移动端底部操作栏：编辑代码（软键盘弹出）时隐藏 */}
       {!editorFocused && (
