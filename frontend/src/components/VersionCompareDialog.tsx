@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { X, GitCompare, Check, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -73,6 +73,10 @@ export function VersionCompareDialog({
     }
   }, [baseId, compareId])
 
+  // handleCompare 随选择变化而变化，不能放进下面 effect 的依赖，否则每次选择都会被重置
+  const handleCompareRef = useRef(handleCompare)
+  handleCompareRef.current = handleCompare
+
   useEffect(() => {
     if (!isOpen) {
       setBaseId('')
@@ -84,10 +88,10 @@ export function VersionCompareDialog({
       setBaseId(initialBaseId || '')
       setCompareId(initialCompareId || '')
       if (initialBaseId && initialCompareId) {
-        handleCompare(initialBaseId, initialCompareId)
+        handleCompareRef.current(initialBaseId, initialCompareId)
       }
     }
-  }, [isOpen, initialBaseId, initialCompareId, handleCompare])
+  }, [isOpen, initialBaseId, initialCompareId])
 
   const handleSwap = () => {
     setBaseId(compareId)
@@ -121,7 +125,8 @@ export function VersionCompareDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative flex max-h-[90vh] w-full max-w-6xl flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 overflow-hidden">
+      {/* 对比结果需要固定高度，编辑器才能在内部滚动 */}
+      <div className={`relative flex w-full max-w-6xl flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900 overflow-hidden ${activeTab === 'result' ? 'h-[90dvh]' : 'max-h-[90dvh]'}`}>
         {/* 头部 */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <div className="flex items-center gap-3">
@@ -295,7 +300,7 @@ export function VersionCompareDialog({
                 </div>
 
                 {/* Diff 视图 */}
-                <div className="flex-1 p-4 overflow-hidden">
+                <div className="flex-1 min-h-0 p-4 overflow-hidden">
                   <LazyDiffViewer
                     original={compareResult.original}
                     modified={compareResult.modified}

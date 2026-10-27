@@ -22,7 +22,7 @@
 
 ## ✨ 特性 (Features)
 
-*   **💻 沉浸式代码体验**：集成 Monaco Editor（VS Code 核心），提供语法高亮和优雅的代码编辑器交互。
+*   **💻 沉浸式代码体验**：基于 CodeMirror 6，提供语法高亮、查找替换和折叠未改动代码的 Diff 视图，桌面与手机端均可流畅选择、复制和粘贴代码。
 *   **🔄 版本分叉与直观 Diff 对比**：像 GitHub 一样分叉（Fork）代码，老师/同学 修改后，学生可以通过直观的双视窗代码差异对比（Diff Viewer），清晰地看到每一行增删改动的细节。
 *   **🔒 灵活的分享控制**：支持公开或私密分享。支持配置阅读次数限制与分享过期时间。
 *   **👥 完整的用户系统**：内置用户注册、登录、找回密码、个人资料维护（基于 JWT Auth）。
@@ -32,7 +32,7 @@
 ## 🛠️ 技术栈 (Tech Stack)
 
 *   **后端 / Backend**: Python 3.11+, FastAPI, Pydantic, SQLite (轻量快速的异步 API)
-*   **前端 / Frontend**: React 18, TypeScript, Vite, React Query, Tailwind CSS, Monaco Editor
+*   **前端 / Frontend**: React 18, TypeScript, Vite, React Query, Tailwind CSS, CodeMirror 6
 
 ## 🚀 快速开始 (Quick Start)
 

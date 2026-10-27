@@ -15,9 +15,9 @@ export default {
   	},
   	extend: {
   		fontFamily: {
-  			sans: ['Albert Sans', 'system-ui', 'sans-serif'],
-  			mono: ['Fira Code', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-  			heading: ['Bricolage Grotesque', 'system-ui', 'sans-serif'],
+  			sans: ['Albert Sans Variable', 'system-ui', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+  			mono: ['Fira Code Variable', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+  			heading: ['Bricolage Grotesque Variable', 'system-ui', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
   		},
   		colors: {
   			border: 'oklch(var(--border) / <alpha-value>)',

@@ -1,6 +1,13 @@
-import { useRef, useCallback } from 'react'
-import Editor, { OnMount, OnChange } from '@monaco-editor/react'
-import type { editor } from 'monaco-editor'
+import { useEffect, useRef } from 'react'
+import { Compartment, EditorState } from '@codemirror/state'
+import { EditorView } from '@codemirror/view'
+import {
+  baseExtensions,
+  languageIndent,
+  loadLanguage,
+  readOnlyExtensions,
+  wordWrapExtension,
+} from '@/lib/codemirror'
 
 interface CodeEditorProps {
   value: string
@@ -19,83 +26,80 @@ export function CodeEditor({
   className = '',
   wordWrap = 'on',
 }: CodeEditorProps) {
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const viewRef = useRef<EditorView | null>(null)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
-  const handleMount: OnMount = useCallback((editor) => {
-    editorRef.current = editor
+  const compartments = useRef({
+    language: new Compartment(),
+    readOnly: new Compartment(),
+    wordWrap: new Compartment(),
+  }).current
+
+  // 创建编辑器（只在挂载时执行一次，其余属性通过 compartment 动态切换）
+  useEffect(() => {
+    const view = new EditorView({
+      parent: containerRef.current!,
+      state: EditorState.create({
+        doc: value,
+        extensions: [
+          baseExtensions(),
+          compartments.language.of(languageIndent(language)),
+          compartments.readOnly.of(readOnlyExtensions(readOnly)),
+          compartments.wordWrap.of(wordWrapExtension(wordWrap)),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+              onChangeRef.current?.(update.state.doc.toString())
+            }
+          }),
+        ],
+      }),
+    })
+    viewRef.current = view
+
+    return () => {
+      view.destroy()
+      viewRef.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleChange: OnChange = useCallback(
-    (value) => {
-      if (onChange && value !== undefined) {
-        onChange(value)
-      }
-    },
-    [onChange]
-  )
+  // 外部传入的 value 变化时同步到编辑器（例如加载完成、切换版本）
+  useEffect(() => {
+    const view = viewRef.current
+    if (!view) return
+    const current = view.state.doc.toString()
+    if (current !== value) {
+      view.dispatch({ changes: { from: 0, to: current.length, insert: value } })
+    }
+  }, [value])
 
-  return (
-    <div className={`h-full w-full ${className}`}>
-      <Editor
-        height="100%"
-        language={language}
-        value={value}
-        onChange={handleChange}
-        onMount={handleMount}
-        theme="light"
-        options={{
-          readOnly,
-          fontSize: 14,
-          fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, Consolas, 'Courier New', monospace",
-          fontLigatures: true,
-          minimap: { enabled: false },
-          scrollBeyondLastLine: false,
-          wordWrap,
-          lineNumbers: 'on',
-          folding: true,
-          automaticLayout: true,
-          tabSize: 2,
-          insertSpaces: true,
-          padding: { top: 16, bottom: 16 },
-          smoothScrolling: true,
-          cursorBlinking: 'smooth',
-          cursorSmoothCaretAnimation: 'on',
-          renderLineHighlight: 'line',
-          renderWhitespace: 'selection',
-          bracketPairColorization: { enabled: true },
-          guides: {
-            bracketPairs: true,
-            indentation: true,
-          },
-          fixedOverflowWidgets: false,
-          overviewRulerBorder: false,
-          hideCursorInOverviewRuler: true,
-          accessibilitySupport: 'off',
-          contextmenu: false,
-          unicodeHighlight: {
-            ambiguousCharacters: false,
-            invisibleCharacters: false,
-          },
-          quickSuggestions: false,
-          domReadOnly: readOnly,
-          // 彻底关闭编辑器用于无障碍和移动端的文本区域交互帮助器
-          scrollbar: {
-            verticalScrollbarSize: 8,
-            horizontalScrollbarSize: 8,
-            alwaysConsumeMouseWheel: false,
-          },
-          links: false,
-          lineNumbersMinChars: 3,
-        }}
-        loading={
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            <div className="text-center">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <span className="text-sm">加载编辑器...</span>
-            </div>
-          </div>
-        }
-      />
-    </div>
-  )
+  useEffect(() => {
+    let cancelled = false
+    loadLanguage(language).then((support) => {
+      if (!cancelled) {
+        viewRef.current?.dispatch({
+          effects: compartments.language.reconfigure([support, languageIndent(language)]),
+        })
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [language, compartments])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: compartments.readOnly.reconfigure(readOnlyExtensions(readOnly)),
+    })
+  }, [readOnly, compartments])
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: compartments.wordWrap.reconfigure(wordWrapExtension(wordWrap)),
+    })
+  }, [wordWrap, compartments])
+
+  return <div ref={containerRef} className={`code-editor h-full w-full ${className}`} />
 }

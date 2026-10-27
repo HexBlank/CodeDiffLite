@@ -32,33 +32,18 @@ export default defineConfig({
   build: {
     outDir: '../static-react',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 3000,
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // 编辑器核心单独打包；各语言包由 lib/codemirror.ts 动态导入，自动拆分
           if (
-            id.includes('@monaco-editor/react') ||
-            id.includes('@monaco-editor/loader')
+            /node_modules\/@codemirror\/(state|view|language|commands|search|autocomplete|merge)\//.test(id) ||
+            /node_modules\/@lezer\/(common|highlight|lr)\//.test(id) ||
+            id.includes('node_modules/style-mod') ||
+            id.includes('node_modules/w3c-keyname') ||
+            id.includes('node_modules/crelt')
           ) {
-            return 'monaco-react'
-          }
-
-          if (
-            id.includes('monaco-editor/esm/vs/basic-languages/') ||
-            id.includes('monaco-editor/esm/vs/language/json/')
-          ) {
-            return 'monaco-languages'
-          }
-
-          if (id.includes('monaco-editor/esm/vs/editor/')) {
-            return 'monaco-editor'
-          }
-
-          if (
-            id.includes('monaco-editor/esm/vs/base/') ||
-            id.includes('monaco-editor/esm/vs/platform/')
-          ) {
-            return 'monaco-core'
+            return 'codemirror'
           }
 
           if (id.includes('node_modules/d3') || id.includes('node_modules/d3-')) {

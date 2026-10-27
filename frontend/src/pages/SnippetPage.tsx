@@ -232,7 +232,7 @@ export function SnippetPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-dvh flex flex-col overflow-hidden">
       {/* Header */}
       <header className="border-b border-border/50 sticky top-0 z-50 bg-background shrink-0">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">

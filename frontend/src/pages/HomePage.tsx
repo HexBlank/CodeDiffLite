@@ -189,7 +189,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-dvh flex flex-col overflow-hidden">
       {/* Header */}
       <header className="glass border-b border-border/50 sticky top-0 z-50 shrink-0 transition-all duration-300">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
